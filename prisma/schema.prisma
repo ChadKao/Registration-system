@@ -13,7 +13,52 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-model User {
-  id    Int     @id @default(autoincrement())
-  name  String?
+// 定義 enum 類型
+enum ScheduleStatus {
+  ON_LEAVE     // 請假關診
+  FULL         // 額滿關診
+  AVAILABLE    // 尚可掛號
 }
+
+enum AppointmentStatus {
+  CONFIRMED    // 已確認
+  CANCELED     // 已取消
+}
+
+model Doctor {
+  id         Int              @id @default(autoincrement())
+  name       String
+  specialty  String
+  schedules  DoctorSchedule[] // 醫生的可用時段
+}
+
+model Patient {
+  id          Int              @id @default(autoincrement())
+  medicalId   String           @unique
+  idNumber    String           @unique
+  birthDate   DateTime
+  name        String
+  contactInfo String
+  appointments Appointment[]   // 病人的掛號
+}
+
+model DoctorSchedule {
+  id                Int      @id @default(autoincrement())
+  doctorId          Int      // 關聯到 Doctor 表的 doctorId
+  scheduleSlot      String   // 表示具體的時段，例如 'Monday_Morning' 或 'Tuesday_Afternoon'
+  date              DateTime // 表示具體日期，例如 '2024-01-01'
+  maxAppointments   Int      // 該時段的最大掛號人數
+  status            ScheduleStatus // 醫生排班的狀態
+  doctor            Doctor   @relation(fields: [doctorId], references: [id])
+  appointments      Appointment[]  // 該時段的掛號
+}
+
+model Appointment {
+  id              Int              @id @default(autoincrement())
+  patientId       Int              // 病人 ID
+  doctorScheduleId Int             // 醫生的某個時段的 ID
+  doctorSchedule  DoctorSchedule   @relation(fields: [doctorScheduleId], references: [id])
+  status          AppointmentStatus // 預約的狀態
+  patient         Patient          @relation(fields: [patientId], references: [id])
+}
+
