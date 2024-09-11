@@ -5,6 +5,24 @@ const appointmentController = {
   createAppointment: async (req, res, next) => {
     const { patientId, doctorScheduleId, status } = req.body
     try {
+      // 先查詢是否有重複掛號的紀錄
+      const existingAppointment = await prisma.appointment.findFirst({
+        where: {
+          patientId,
+          doctorScheduleId,
+          status: 'CONFIRMED' // 確認過的掛號，避免已取消的掛號被算進去
+        }
+      })
+
+      // 如果已經有掛號紀錄，則返回錯誤
+      if (existingAppointment) {
+        return res.status(400).json({
+          status: 'fail',
+          message: 'You have already booked this time slot.'
+        })
+      }
+
+      // 如果沒有重複掛號，則創建新掛號
       const newAppointment = await prisma.appointment.create({
         data: { patientId, doctorScheduleId, status }
       })
