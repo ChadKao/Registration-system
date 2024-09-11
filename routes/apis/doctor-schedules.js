@@ -9,4 +9,6 @@ router.get('/:id', doctorScheduleController.getDoctorScheduleById)
 router.put('/:id', doctorScheduleController.updateDoctorSchedule)
 router.delete('/:id', doctorScheduleController.deleteDoctorSchedule)
 
+router.get('/status/:id', doctorScheduleController.checkScheduleStatus)
+
 module.exports = router
