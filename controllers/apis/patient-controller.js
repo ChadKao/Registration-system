@@ -5,6 +5,18 @@ const patientController = {
   createPatient: async (req, res, next) => {
     const { medicalId, idNumber, birthDate, name, contactInfo } = req.body
     try {
+      const existingPatient = await prisma.patient.findUnique({
+        where: { medicalId }
+      })
+
+      if (existingPatient) {
+        return res.status(400).json({
+          status: 'error',
+          message: 'Patient with this medicalId already exists!'
+        })
+      }
+
+      // 如果不存在，則繼續創建新病人
       const newPatient = await prisma.patient.create({
         data: { medicalId, idNumber, birthDate, name, contactInfo }
       })
