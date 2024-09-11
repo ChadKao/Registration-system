@@ -5,6 +5,21 @@ const appointmentController = {
   createAppointment: async (req, res, next) => {
     const { patientId, doctorScheduleId, status } = req.body
     try {
+      // 查詢該時段的詳細資料
+      const schedule = await prisma.doctorSchedule.findUnique({
+        where: { id: doctorScheduleId },
+        include: {
+          appointments: true // 查詢相關的appointments
+        }
+      })
+
+      if (!schedule) {
+        return res.status(404).json({
+          status: 'fail',
+          message: 'Schedule not found.'
+        })
+      }
+
       // 先查詢是否有重複掛號的紀錄
       const existingAppointment = await prisma.appointment.findFirst({
         where: {
@@ -26,6 +41,16 @@ const appointmentController = {
       const newAppointment = await prisma.appointment.create({
         data: { patientId, doctorScheduleId, status }
       })
+
+      // 檢查並更新時段狀態
+      const updatedBookedAppointments = schedule.appointments.filter(appointment => appointment.status === 'CONFIRMED').length + 1
+      if (updatedBookedAppointments >= schedule.maxAppointments) {
+        await prisma.doctorSchedule.update({
+          where: { id: doctorScheduleId },
+          data: { status: 'FULL' }
+        })
+      }
+
       res.status(201).json({ status: 'success', data: newAppointment })
     } catch (error) {
       next(error)
