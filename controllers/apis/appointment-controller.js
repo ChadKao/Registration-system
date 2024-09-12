@@ -20,6 +20,14 @@ const appointmentController = {
         })
       }
 
+      // 檢查時段狀態是否為 FULL
+      if (schedule.status === 'FULL') {
+        return res.status(400).json({
+          status: 'fail',
+          message: 'This time slot is fully booked.'
+        })
+      }
+
       // 先查詢是否有重複掛號的紀錄
       const existingAppointment = await prisma.appointment.findFirst({
         where: {

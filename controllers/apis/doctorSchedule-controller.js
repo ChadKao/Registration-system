@@ -108,6 +108,48 @@ const doctorScheduleController = {
     } catch (error) {
       next(error)
     }
+  },
+  // 依科別查詢時段
+  getSchedulesBySpecialty: async (req, res, next) => {
+    const { specialty } = req.params // 從 URL 參數中取得專科
+
+    try {
+      // 查詢符合專科的醫生時段
+      const schedules = await prisma.doctorSchedule.findMany({
+        where: {
+          doctor: {
+            specialty // 根據醫生的專科篩選時段
+          }
+        },
+        include: {
+          doctor: true, // 包含醫生資訊
+          appointments: true // 包含掛號資料
+        }
+      })
+
+      // 整理資料
+      const formattedSchedules = schedules.map(schedule => {
+        const bookedAppointments = schedule.appointments.filter(appointment => appointment.status === 'CONFIRMED').length
+
+        return {
+          doctorScheduleId: schedule.id,
+          date: schedule.date,
+          scheduleSlot: schedule.scheduleSlot,
+          specialty: schedule.doctor.specialty,
+          doctorName: schedule.doctor.name,
+          bookedAppointments,
+          maxAppointments: schedule.maxAppointments,
+          status: schedule.status
+        }
+      })
+
+      res.status(200).json({
+        status: 'success',
+        data: formattedSchedules
+      })
+    } catch (error) {
+      next(error)
+    }
   }
 }
 
