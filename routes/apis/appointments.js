@@ -9,6 +9,7 @@ router.get('/:id', appointmentController.getAppointmentById)
 router.post('/by-patient', appointmentController.getAppointmentsByPatient)
 
 router.put('/:id', appointmentController.updateAppointment)
+router.patch('/:id', appointmentController.cancelAppointment)
 router.delete('/:id', appointmentController.deleteAppointment)
 
 module.exports = router

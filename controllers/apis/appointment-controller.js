@@ -167,6 +167,19 @@ const appointmentController = {
     } catch (error) {
       next(error)
     }
+  },
+  // 取消預約
+  cancelAppointment: async (req, res, next) => {
+    const { id } = req.params
+    try {
+      const updatedAppointment = await prisma.appointment.update({
+        where: { id: parseInt(id) },
+        data: { status: 'CANCELED' }
+      })
+      res.status(200).json({ status: 'success', data: updatedAppointment })
+    } catch (error) {
+      next(error)
+    }
   }
 }
 
