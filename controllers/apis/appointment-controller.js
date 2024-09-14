@@ -92,6 +92,55 @@ const appointmentController = {
     }
   },
 
+  // 查詢病人的所有掛號紀錄
+  getAppointmentsByPatient: async (req, res, next) => {
+    const { idNumber, birthDate } = req.body
+
+    try {
+      // 查詢病人的所有掛號紀錄，並包含相關的醫生排班資料
+      const appointments = await prisma.appointment.findMany({
+        where: {
+          patient: {
+            idNumber,
+            birthDate: new Date(birthDate)
+          } // 根據病人資料篩選掛號紀錄
+        },
+        include: {
+          doctorSchedule: {
+            include: {
+              doctor: true // 包含醫生資料
+            }
+          }
+        }
+      })
+
+      // 如果沒有找到掛號紀錄，返回 404
+      if (appointments.length === 0) {
+        return res.status(404).json({
+          status: 'fail',
+          message: 'No appointments found for this patient.'
+        })
+      }
+
+      // 格式化返回資料
+      const formattedAppointments = appointments.map(appointment => ({
+        appointmentId: appointment.id,
+        date: appointment.doctorSchedule.date,
+        scheduleSlot: appointment.doctorSchedule.scheduleSlot,
+        doctorName: appointment.doctorSchedule.doctor.name,
+        doctorSpecialty: appointment.doctorSchedule.doctor.specialty,
+        status: appointment.status
+      }))
+
+      res.status(200).json({
+        status: 'success',
+        data: formattedAppointments
+      })
+    } catch (error) {
+      next(error)
+    }
+  },
+
   // 更新預約
   updateAppointment: async (req, res, next) => {
     const { id } = req.params
