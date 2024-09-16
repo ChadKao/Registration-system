@@ -6,8 +6,11 @@
     "test": "echo \"Error: no test specified\" && exit 1",
     "start": "set NODE_ENV=development&& node app.js",
     "dev": "set NODE_ENV=development&& nodemon app.js",
-    "db:init": "npx sequelize db:create&& npx sequelize db:migrate&& npx sequelize db:seed:all",
+    "db:init": "npx prisma db push && npx prisma migrate deploy && npx prisma db seed",
     "lint": "eslint \"**/*.js\" --fix"
+  },
+  "prisma": {
+    "seed": "node prisma/seed.js"
   },
   "keywords": [],
   "author": "",
