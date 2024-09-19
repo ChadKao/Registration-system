@@ -1,14 +1,12 @@
 const prisma = require('../services/prisma')
 
-// 星期幾的映射
+// 星期幾的映射(限定星期一到五)
 const dayMap = {
-  0: 'Sunday',
   1: 'Monday',
   2: 'Tuesday',
   3: 'Wednesday',
   4: 'Thursday',
-  5: 'Friday',
-  6: 'Saturday'
+  5: 'Friday'
 }
 
 // 時段
@@ -37,7 +35,7 @@ async function main () {
 
       for (let j = 0; j < 3; j++) {
         // 隨機生成日期
-        const date = generateRandomDate(new Date('2024-09-01'), new Date('2024-09-10'))
+        const date = generateRandomDate(new Date('2024-09-02'), new Date('2024-09-05'))
         const dayOfWeek = dayMap[date.getDay()] // 獲取星期幾
         const timeSlot = getRandomElement(timeSlots)
 

@@ -86,6 +86,27 @@ const doctorController = {
     } catch (error) {
       next(error) // 將錯誤傳遞給錯誤處理中介軟體
     }
+  },
+  getUniqueSpecialties: async (req, res) => {
+    try {
+      // 查詢所有醫生的科別
+      const doctors = await prisma.doctor.findMany({
+        select: {
+          specialty: true // 僅選取 specialty 欄位
+        }
+      })
+
+      // 從查詢結果中提取獨特的科別名稱
+      const specialties = [...new Set(doctors.map(doctor => doctor.specialty))]
+
+      // 回傳獨特的科別列表
+      res.status(200).json({
+        success: true,
+        data: specialties
+      })
+    } catch (error) {
+      res.status(500).json({ error: 'Failed to fetch specialties' })
+    }
   }
 }
 

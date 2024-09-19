@@ -136,6 +136,48 @@ const doctorScheduleController = {
           date: schedule.date,
           scheduleSlot: schedule.scheduleSlot,
           specialty: schedule.doctor.specialty,
+          doctorId: schedule.doctor.id,
+          doctorName: schedule.doctor.name,
+          bookedAppointments,
+          maxAppointments: schedule.maxAppointments,
+          status: schedule.status
+        }
+      })
+
+      res.status(200).json({
+        status: 'success',
+        data: formattedSchedules
+      })
+    } catch (error) {
+      next(error)
+    }
+  },
+  // 依醫師查詢時段
+  getSchedulesByDoctorId: async (req, res, next) => {
+    const { doctorId } = req.params
+
+    try {
+      // 查詢醫生的所有排班資料
+      const schedules = await prisma.doctorSchedule.findMany({
+        where: {
+          doctorId: parseInt(doctorId) // 根據 doctorID 查詢
+        },
+        include: {
+          doctor: true,
+          appointments: true
+        }
+      })
+
+      // 整理資料格式
+      const formattedSchedules = schedules.map(schedule => {
+        const bookedAppointments = schedule.appointments.filter(appointment => appointment.status === 'CONFIRMED').length
+
+        return {
+          doctorScheduleId: schedule.id,
+          date: schedule.date,
+          scheduleSlot: schedule.scheduleSlot,
+          specialty: schedule.doctor.specialty,
+          doctorId: schedule.doctor.id,
           doctorName: schedule.doctor.name,
           bookedAppointments,
           maxAppointments: schedule.maxAppointments,
