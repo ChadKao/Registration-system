@@ -57,6 +57,7 @@ model Appointment {
   id              Int              @id @default(autoincrement())
   patientId       Int              // 病人 ID
   doctorScheduleId Int             // 醫生的某個時段的 ID
+  consultationNumber Int              // 看診號碼
   doctorSchedule  DoctorSchedule   @relation(fields: [doctorScheduleId], references: [id])
   status          AppointmentStatus // 預約的狀態
   patient         Patient          @relation(fields: [patientId], references: [id])

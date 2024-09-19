@@ -45,9 +45,21 @@ const appointmentController = {
         })
       }
 
+      // 查詢該時段所有的看診號碼，並找到最大值
+      const existingConsultationNumbers = await prisma.appointment.findMany({
+        where: { doctorScheduleId },
+        select: { consultationNumber: true }
+      })
+
+      const maxConsultationNumber = existingConsultationNumbers.length > 0
+        ? Math.max(...existingConsultationNumbers.map(appointment => appointment.consultationNumber))
+        : 0
+
+      const consultationNumber = maxConsultationNumber + 1
+
       // 如果沒有重複掛號，則創建新掛號
       const newAppointment = await prisma.appointment.create({
-        data: { patientId, doctorScheduleId, status }
+        data: { patientId, doctorScheduleId, status, consultationNumber }
       })
 
       // 檢查並更新時段狀態
@@ -129,6 +141,7 @@ const appointmentController = {
         scheduleSlot: appointment.doctorSchedule.scheduleSlot,
         doctorName: appointment.doctorSchedule.doctor.name,
         doctorSpecialty: appointment.doctorSchedule.doctor.specialty,
+        consultationNumber: appointment.consultationNumber,
         status: appointment.status
       }))
 

@@ -87,11 +87,13 @@ async function main () {
       {
         patientId: patientList[0].id,
         doctorScheduleId: scheduleList[0].id,
+        consultationNumber: 1,
         status: 'CONFIRMED'
       },
       {
         patientId: patientList[1].id,
         doctorScheduleId: scheduleList[1].id,
+        consultationNumber: 1,
         status: 'CONFIRMED'
       }
     ]
