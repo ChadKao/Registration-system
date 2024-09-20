@@ -88,7 +88,7 @@ const doctorController = {
     }
   },
   getUniqueSpecialties: async (req, res) => {
-    try {
+    /*     try {
       // 查詢所有醫生的科別
       const doctors = await prisma.doctor.findMany({
         select: {
@@ -99,7 +99,13 @@ const doctorController = {
       // 從查詢結果中提取獨特的科別名稱
       const specialties = [...new Set(doctors.map(doctor => doctor.specialty))]
 
-      // 回傳獨特的科別列表
+      // 回傳獨特的科別列表 */
+    try {
+      const specialties = {
+        內科: ['一般內科'],
+        外科: ['一般外科'],
+        其他: ['皮膚科']
+      }
       res.status(200).json({
         success: true,
         data: specialties
