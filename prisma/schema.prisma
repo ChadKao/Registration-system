@@ -29,6 +29,7 @@ model Doctor {
   id         Int              @id @default(autoincrement())
   name       String
   specialty  String
+  description String        // 主治專長的描述
   schedules  DoctorSchedule[] // 醫生的可用時段
 }
 

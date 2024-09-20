@@ -1,5 +1,22 @@
 const prisma = require('../services/prisma')
 
+const doctorDescriptions = [
+  // 一般內科
+  ['高血壓', '糖尿病', '慢性病管理', '心血管疾病', '內分泌疾病', '腎臟病', '呼吸系統疾病', '傳染病'],
+  ['消化道問題', '胃腸道疾病', '肝臟疾病', '內視鏡學', '膽胰疾病', '幽門螺旋桿菌', '超音波術', '胃癌'],
+  ['呼吸系統疾病', '過敏反應', '慢性阻塞性肺病', '肺炎', '哮喘', '傳染病控制', '免疫系統', '代謝疾病'],
+
+  // 一般外科
+  ['心臟外科', '血管外科', '急救手術', '創傷處理', '器官移植', '胸腔外科', '肝膽手術', '腹腔鏡手術'],
+  ['腹腔鏡手術', '膽囊切除', '闌尾切除', '腸道修復手術', '內視鏡手術', '胃癌切除', '大腸癌手術', '急診手術'],
+  ['創傷外科', '急診外科', '燒傷處理', '腹腔手術', '胸腔手術', '結直腸手術', '急救處理', '血管修復手術'],
+
+  // 皮膚科
+  ['皮膚過敏', '濕疹', '異位性皮膚炎', '蕁麻疹', '銀屑病', '皮膚病理', '皮膚真菌感染', '青春痘治療'],
+  ['皮膚美容', '微整形', '去角質', '注射填充劑', '皮膚老化治療', '雷射美容', '去疤手術', '脂肪移植'],
+  ['皮膚癌', '黑色素瘤', '基底細胞癌', '皮膚腫瘤切除', '皮膚病變', '早期皮膚癌診斷', '冷凍治療', '放射療法']
+]
+
 // 星期幾的映射(限定星期一到五)
 const dayMap = {
   1: 'Monday',
@@ -32,6 +49,8 @@ async function main () {
     for (let i = 0; i < 3; i++) {
       const doctorName = names[i + specialties.indexOf(specialty) * 3]
       const schedules = []
+      const doctorIndex = i + specialties.indexOf(specialty) * 3
+      const description = JSON.stringify(doctorDescriptions[doctorIndex]) // 獲取對應的主治專長描述
 
       for (let j = 0; j < 3; j++) {
         // 隨機生成日期
@@ -51,6 +70,7 @@ async function main () {
         data: {
           name: doctorName,
           specialty,
+          description,
           schedules: {
             create: schedules
           }
