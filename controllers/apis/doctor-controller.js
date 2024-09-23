@@ -87,7 +87,7 @@ const doctorController = {
       next(error) // 將錯誤傳遞給錯誤處理中介軟體
     }
   },
-  getUniqueSpecialties: async (req, res) => {
+  getUniqueSpecialties: async (req, res, next) => {
     /*     try {
       // 查詢所有醫生的科別
       const doctors = await prisma.doctor.findMany({
@@ -111,7 +111,26 @@ const doctorController = {
         data: specialties
       })
     } catch (error) {
-      res.status(500).json({ error: 'Failed to fetch specialties' })
+      next(error)
+    }
+  },
+  searchDoctors: async (req, res, next) => {
+    const keyword = req.query.keyword?.trim() || ''// 從查詢參數獲取關鍵字
+
+    try {
+      const doctors = await prisma.doctor.findMany({
+        where: {
+          OR: [
+            { name: { contains: keyword } }, // 醫師姓名
+            { specialty: { contains: keyword } }, // 科別
+            { description: { contains: keyword } } // 主治專長
+          ]
+        }
+      })
+
+      res.json(doctors) // 返回符合條件的醫師資料
+    } catch (error) {
+      next(error)
     }
   }
 }
