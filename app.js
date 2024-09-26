@@ -6,7 +6,7 @@ const prisma = require('./services/prisma')
 const apiErrorHandler = require('./middleware/apiErrorHandler')
 
 app.use(express.json())
-
+app.use(express.urlencoded({ extended: true }))
 app.use('/api', routes) // 所有路由都會以 /api 開頭
 app.get('/', (req, res) => res.send('Hello World!'))
 

@@ -1,10 +1,50 @@
 // controllers/apis/appointment-controller.js
 const prisma = require('../../services/prisma')
+const secretKey = process.env.RECAPTCHA_SECRET_KEY
 
 const appointmentController = {
   createAppointment: async (req, res, next) => {
-    const { patientId, doctorScheduleId, status } = req.body
+    const { idNumber, birthDate, doctorScheduleId, status, recaptchaResponse } = req.body
+    // 檢查必填資料
+    if (!(idNumber && birthDate && recaptchaResponse)) {
+      return res.status(400).json({ error: '缺少必要的資料' })
+    }
     try {
+      // 驗證 reCAPTCHA
+      const verificationURL = 'https://www.google.com/recaptcha/api/siteverify'
+      const verificationParams = new URLSearchParams()
+      verificationParams.append('secret', secretKey)
+      verificationParams.append('response', recaptchaResponse)
+
+      const verificationResponse = await fetch(verificationURL, {
+        method: 'POST',
+        body: verificationParams // 使用 x-www-form-urlencoded 格式
+      })
+
+      const verificationData = await verificationResponse.json()
+
+      // 驗證失敗，返回錯誤訊息
+      if (!verificationData.success) {
+        return res.status(400).json({ error: 'reCAPTCHA 驗證失敗' })
+      }
+
+      // 查詢該病人的 patientId
+      const patient = await prisma.patient.findUnique({
+        where: {
+          idNumber,
+          birthDate: new Date(birthDate)
+        }
+      })
+
+      if (!patient) {
+        return res.status(404).json({
+          status: 'fail',
+          message: 'Patient not found.(若為初診病人，請先填寫初診資料)'
+        })
+      }
+
+      const patientId = patient.id // 獲取 patientId
+
       // 查詢該時段的詳細資料
       const schedule = await prisma.doctorSchedule.findUnique({
         where: { id: doctorScheduleId },
@@ -106,9 +146,32 @@ const appointmentController = {
 
   // 查詢病人的所有掛號紀錄
   getAppointmentsByPatient: async (req, res, next) => {
-    const { idNumber, birthDate } = req.body
+    const { idNumber, birthDate, recaptchaResponse } = req.body
+
+    // 檢查必填資料
+    if (!(idNumber && birthDate && recaptchaResponse)) {
+      return res.status(400).json({ error: '缺少必要的資料' })
+    }
 
     try {
+      // 驗證 reCAPTCHA
+      const verificationURL = 'https://www.google.com/recaptcha/api/siteverify'
+      const verificationParams = new URLSearchParams()
+      verificationParams.append('secret', secretKey)
+      verificationParams.append('response', recaptchaResponse)
+
+      const verificationResponse = await fetch(verificationURL, {
+        method: 'POST',
+        body: verificationParams // 使用 x-www-form-urlencoded 格式
+      })
+
+      const verificationData = await verificationResponse.json()
+
+      // 驗證失敗，返回錯誤訊息
+      if (!verificationData.success) {
+        return res.status(400).json({ error: 'reCAPTCHA 驗證失敗' })
+      }
+
       // 查詢病人的所有掛號紀錄，並包含相關的醫生排班資料
       const appointments = await prisma.appointment.findMany({
         where: {
