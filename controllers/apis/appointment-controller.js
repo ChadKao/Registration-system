@@ -4,7 +4,7 @@ const secretKey = process.env.RECAPTCHA_SECRET_KEY
 
 const appointmentController = {
   createAppointment: async (req, res, next) => {
-    const { idNumber, birthDate, doctorScheduleId, status, recaptchaResponse } = req.body
+    const { idNumber, birthDate, doctorScheduleId, recaptchaResponse } = req.body
     // 檢查必填資料
     if (!(idNumber && birthDate && recaptchaResponse)) {
       return res.status(400).json({ error: '缺少必要的資料' })
@@ -99,8 +99,30 @@ const appointmentController = {
 
       // 如果沒有重複掛號，則創建新掛號
       const newAppointment = await prisma.appointment.create({
-        data: { patientId, doctorScheduleId, status, consultationNumber }
+        data: { patientId, doctorScheduleId, status: 'CONFIRMED', consultationNumber },
+        include: {
+          doctorSchedule: {
+            include: {
+              doctor: {
+                include: {
+                  specialty: true // 確保包含醫生及其專科資料
+                }
+              }
+            }
+          }
+        }
       })
+
+      // 格式化掛號資料
+      const formattedAppointment = {
+        appointmentId: newAppointment.id,
+        date: newAppointment.doctorSchedule.date,
+        scheduleSlot: newAppointment.doctorSchedule.scheduleSlot,
+        doctorName: newAppointment.doctorSchedule.doctor.name,
+        doctorSpecialty: newAppointment.doctorSchedule.doctor.specialty.name,
+        consultationNumber: newAppointment.consultationNumber,
+        status: newAppointment.status
+      }
 
       // 檢查並更新時段狀態
       const updatedBookedAppointments = schedule.appointments.filter(appointment => appointment.status === 'CONFIRMED').length + 1
@@ -111,7 +133,7 @@ const appointmentController = {
         })
       }
 
-      res.status(201).json({ status: 'success', data: newAppointment })
+      res.status(201).json({ status: 'success', data: formattedAppointment })
     } catch (error) {
       next(error)
     }
@@ -183,7 +205,11 @@ const appointmentController = {
         include: {
           doctorSchedule: {
             include: {
-              doctor: true // 包含醫生資料
+              doctor: {
+                include: {
+                  specialty: true // 確保包含專科資料
+                }
+              }
             }
           }
         }
@@ -203,7 +229,7 @@ const appointmentController = {
         date: appointment.doctorSchedule.date,
         scheduleSlot: appointment.doctorSchedule.scheduleSlot,
         doctorName: appointment.doctorSchedule.doctor.name,
-        doctorSpecialty: appointment.doctorSchedule.doctor.specialty,
+        doctorSpecialty: appointment.doctorSchedule.doctor.specialty.name,
         consultationNumber: appointment.consultationNumber,
         status: appointment.status
       }))
@@ -250,9 +276,30 @@ const appointmentController = {
     try {
       const updatedAppointment = await prisma.appointment.update({
         where: { id: parseInt(id) },
-        data: { status: 'CANCELED' }
+        data: { status: 'CANCELED' },
+        include: {
+          doctorSchedule: { // 包含醫生的時段資料
+            include: {
+              doctor: {
+                include: {
+                  specialty: true // 確保包含專科資料
+                }
+              }
+            }
+          }
+        }
       })
-      res.status(200).json({ status: 'success', data: updatedAppointment })
+      // 格式化掛號資料
+      const formattedAppointment = {
+        appointmentId: updatedAppointment.id,
+        date: updatedAppointment.doctorSchedule.date,
+        scheduleSlot: updatedAppointment.doctorSchedule.scheduleSlot,
+        doctorName: updatedAppointment.doctorSchedule.doctor.name,
+        doctorSpecialty: updatedAppointment.doctorSchedule.doctor.specialty.name,
+        consultationNumber: updatedAppointment.consultationNumber,
+        status: updatedAppointment.status
+      }
+      res.status(200).json({ status: 'success', data: formattedAppointment })
     } catch (error) {
       next(error)
     }

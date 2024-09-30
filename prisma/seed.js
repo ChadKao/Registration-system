@@ -42,17 +42,33 @@ function generateRandomDate (start, end) {
 
 async function main () {
   // 定義科別
+  const categories = ['內科', '外科', '其他']
   const specialties = ['一般內科', '一般外科', '皮膚科']
 
   // 確保每個科別有 3 位醫生
-  for (const specialty of specialties) {
-    for (let i = 0; i < 3; i++) {
-      const doctorName = names[i + specialties.indexOf(specialty) * 3]
-      const schedules = []
-      const doctorIndex = i + specialties.indexOf(specialty) * 3
-      const description = JSON.stringify(doctorDescriptions[doctorIndex]) // 獲取對應的主治專長描述
+  for (let i = 0; i < categories.length; i++) {
+    const categoryName = categories[i]
+    const specialtyName = specialties[i]
 
-      for (let j = 0; j < 3; j++) {
+    // 創建類別
+    const category = await prisma.category.create({
+      data: {
+        name: categoryName,
+        specialties: {
+          create: [{ name: specialtyName }] // 創建對應的專科
+        }
+      },
+      include: {
+        specialties: true // 確保返回 specialties
+      }
+    })
+
+    for (let j = 0; j < 3; j++) {
+      const doctorName = names[j + i * 3]
+      const schedules = []
+      const description = JSON.stringify(doctorDescriptions[j + i * 3]) // 獲取對應的主治專長描述
+
+      for (let k = 0; k < 3; k++) {
         // 隨機生成日期
         const date = generateRandomDate(new Date('2024-09-02'), new Date('2024-09-05'))
         const dayOfWeek = dayMap[date.getDay()] // 獲取星期幾
@@ -69,7 +85,9 @@ async function main () {
       await prisma.doctor.create({
         data: {
           name: doctorName,
-          specialty,
+          specialty: {
+            connect: { id: category.specialties[0].id } // 將醫生連接到相對應的專科
+          },
           description,
           schedules: {
             create: schedules

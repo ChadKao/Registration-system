@@ -118,11 +118,15 @@ const doctorScheduleController = {
       const schedules = await prisma.doctorSchedule.findMany({
         where: {
           doctor: {
-            specialty // 根據醫生的專科篩選時段
+            specialty: { name: specialty } // 根據醫生的專科篩選時段
           }
         },
         include: {
-          doctor: true, // 包含醫生資訊
+          doctor: {
+            include: {
+              specialty: true // 包含醫生的專科資訊
+            }
+          },
           appointments: true // 包含掛號資料
         }
       })
@@ -135,7 +139,7 @@ const doctorScheduleController = {
           doctorScheduleId: schedule.id,
           date: schedule.date,
           scheduleSlot: schedule.scheduleSlot,
-          specialty: schedule.doctor.specialty,
+          specialty: schedule.doctor.specialty.name,
           doctorId: schedule.doctor.id,
           doctorName: schedule.doctor.name,
           bookedAppointments,
@@ -163,7 +167,11 @@ const doctorScheduleController = {
           doctorId: parseInt(doctorId) // 根據 doctorID 查詢
         },
         include: {
-          doctor: true,
+          doctor: {
+            include: {
+              specialty: true
+            }
+          },
           appointments: true
         }
       })
@@ -176,7 +184,7 @@ const doctorScheduleController = {
           doctorScheduleId: schedule.id,
           date: schedule.date,
           scheduleSlot: schedule.scheduleSlot,
-          specialty: schedule.doctor.specialty,
+          specialty: schedule.doctor.specialty.name,
           doctorId: schedule.doctor.id,
           doctorName: schedule.doctor.name,
           bookedAppointments,

@@ -6,7 +6,7 @@
     "test": "echo \"Error: no test specified\" && exit 1",
     "start": "set NODE_ENV=development&& node app.js",
     "dev": "set NODE_ENV=development&& nodemon app.js",
-    "db:init": "npx prisma db push && npx prisma migrate deploy && npx prisma db seed",
+    "db:init": "npx prisma migrate deploy && npx prisma db seed",
     "lint": "eslint \"**/*.js\" --fix"
   },
   "prisma": {

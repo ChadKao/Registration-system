@@ -25,12 +25,27 @@ enum AppointmentStatus {
   CANCELED     // 已取消
 }
 
+model Category {
+  id        Int        @id @default(autoincrement())
+  name      String     @unique
+  specialties Specialty[] // 對應的科別
+}
+
+model Specialty {
+  id          Int       @id @default(autoincrement())
+  name        String    @unique
+  categoryId  Int       // 外鍵，指向 Category
+  category    Category   @relation(fields: [categoryId], references: [id]) // 與 Category 關聯
+  doctors     Doctor[]  // 對應的醫生
+}
+
 model Doctor {
   id         Int              @id @default(autoincrement())
   name       String
-  specialty  String
+  specialtyId Int       // 外鍵，指向 Specialty
   description String        // 主治專長的描述
   schedules  DoctorSchedule[] // 醫生的可用時段
+  specialty   Specialty @relation(fields: [specialtyId], references: [id]) // 與 Specialty 關聯
 }
 
 model Patient {
