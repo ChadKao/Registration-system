@@ -7,6 +7,26 @@ const apiErrorHandler = require('./middleware/apiErrorHandler')
 
 const VALID_API_KEY = process.env.VALID_API_KEY || 'your_default_api_key'
 
+const cors = require('cors')
+
+// 允許的前端域名 (包括本地開發和生產環境)
+const allowedOrigins = [
+  'http://localhost:3000', // 本地開發時的前端域名
+  'https://your-frontend-domain.com' // 生產環境中的前端域名
+]
+
+// CORS 設定
+app.use(cors({
+  origin: function (origin, callback) {
+    // 如果請求的 origin 存在於 allowedOrigins 中，則允許，否則拒絕
+    if (allowedOrigins.indexOf(origin) !== -1 || !origin) {
+      callback(null, true)
+    } else {
+      callback(new Error('Not allowed by CORS'))
+    }
+  }
+}))
+
 // 中介軟件來驗證 API 金鑰
 app.use((req, res, next) => {
   const apiKey = req.headers['x-api-key']
