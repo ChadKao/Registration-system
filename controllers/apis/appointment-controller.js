@@ -1,6 +1,6 @@
-// controllers/apis/appointment-controller.js
 const prisma = require('../../services/prisma')
 const secretKey = process.env.RECAPTCHA_SECRET_KEY
+const { validateIdNumber } = require('../../helpers/idValidation')
 
 const appointmentController = {
   createAppointment: async (req, res, next) => {
@@ -8,6 +8,10 @@ const appointmentController = {
     // 檢查必填資料
     if (!(idNumber && birthDate && recaptchaResponse)) {
       return res.status(400).json({ error: '缺少必要的資料' })
+    }
+    // 驗證身分證字號
+    if (!validateIdNumber(idNumber)) {
+      return res.status(400).json({ error: 'Invalid ID number(身分證字號格式錯誤)' })
     }
     try {
       // 驗證 reCAPTCHA
@@ -173,6 +177,10 @@ const appointmentController = {
     // 檢查必填資料
     if (!(idNumber && birthDate && recaptchaResponse)) {
       return res.status(400).json({ error: '缺少必要的資料' })
+    }
+    // 驗證身分證字號
+    if (!validateIdNumber(idNumber)) {
+      return res.status(400).json({ error: 'Invalid ID number(身分證字號格式錯誤)' })
     }
 
     try {

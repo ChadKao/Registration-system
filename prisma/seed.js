@@ -102,13 +102,13 @@ async function main () {
       {
         name: '病患一',
         medicalId: 'MED001', // 必須提供唯一的 medicalId
-        idNumber: 'A123456789',
+        idNumber: 'K207654606',
         birthDate: new Date('1990-01-01'),
         contactInfo: '聯絡資訊一' // 必須提供 contactInfo
       },
       {
         name: '病患二',
-        medicalId: 'MED002', // 必須提供唯一的 medicalId
+        medicalId: 'J103371747', // 必須提供唯一的 medicalId
         idNumber: 'B987654321',
         birthDate: new Date('1992-05-10'),
         contactInfo: '聯絡資訊二' // 必須提供 contactInfo

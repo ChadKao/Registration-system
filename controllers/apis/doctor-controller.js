@@ -5,6 +5,7 @@ const doctorController = {
   // 新增醫生
   createDoctor: async (req, res, next) => {
     const { name, specialty, description, schedules } = req.body
+    // 如果改成下拉式選單則這邊可以改成帶入specialtyId
     try {
       // 驗證輸入資料
       if (!name || !specialty) {
@@ -21,7 +22,7 @@ const doctorController = {
       if (!foundSpecialty) {
         return res.status(400).json({
           status: 'fail',
-          message: '找不到對應的科別'
+          message: `Specialty "${specialty}" not found!`
         })
       }
       const newDoctor = await prisma.doctor.create({
@@ -117,12 +118,12 @@ const doctorController = {
     const { name, specialty, description } = req.body
     try {
       // 根據專科名稱查找對應的專科 ID
-      const specialtyRecord = await prisma.specialty.findUnique({
+      const foundSpecialty = await prisma.specialty.findUnique({
         where: { name: specialty } // 使用專科名稱來查詢
       })
 
       // 如果沒有找到對應的專科，返回錯誤
-      if (!specialtyRecord) {
+      if (!foundSpecialty) {
         return res.status(404).json({
           status: 'fail',
           message: `Specialty "${specialty}" not found!`
@@ -136,7 +137,7 @@ const doctorController = {
           name,
           description,
           specialty: {
-            connect: { id: specialtyRecord.id } // 使用 connect 來連接到指定的專科
+            connect: { id: foundSpecialty.id } // 使用 connect 來連接到指定的專科
           }
         },
         include: {
