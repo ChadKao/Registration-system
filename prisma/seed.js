@@ -1,4 +1,7 @@
 const prisma = require('../services/prisma')
+// 可配置變數
+const NUM_DOCTORS_PER_CATEGORY = 3 // 每個科別的醫生數量
+const NUM_SCHEDULES_PER_DOCTOR = 3 // 每位醫生的時段數量
 
 const doctorDescriptions = [
   // 一般內科
@@ -18,26 +21,28 @@ const doctorDescriptions = [
 ]
 
 // 星期幾的映射(限定星期一到五)
-const dayMap = {
-  1: 'Monday',
-  2: 'Tuesday',
-  3: 'Wednesday',
-  4: 'Thursday',
-  5: 'Friday'
-}
+const scheduleArray = [
+  { dayOfWeek: 'Monday', date: new Date('2024-09-02') },
+  { dayOfWeek: 'Tuesday', date: new Date('2024-09-03') },
+  { dayOfWeek: 'Wednesday', date: new Date('2024-09-04') },
+  { dayOfWeek: 'Thursday', date: new Date('2024-09-05') },
+  { dayOfWeek: 'Friday', date: new Date('2024-09-06') }
+]
 
 // 時段
 const timeSlots = ['Morning', 'Afternoon']
 
-// 隨機選擇元素
-function getRandomElement (arr) {
-  return arr[Math.floor(Math.random() * arr.length)]
-}
+// 生成所有可能的 dayOfWeek 和 timeSlot 組合
+const allPossibleSlots = []
 
-// 生成隨機日期
-function generateRandomDate (start, end) {
-  const date = new Date(start.getTime() + Math.random() * (end.getTime() - start.getTime()))
-  return date
+for (const day of scheduleArray) {
+  for (const slot of timeSlots) {
+    allPossibleSlots.push({
+      dayOfWeek: day.dayOfWeek,
+      date: day.date,
+      timeSlot: slot
+    })
+  }
 }
 
 async function main () {
@@ -45,7 +50,7 @@ async function main () {
   const categories = ['內科', '外科', '其他']
   const specialties = ['一般內科', '一般外科', '皮膚科']
 
-  // 確保每個科別有 3 位醫生
+  // 確保每個科別有 對應數量 位醫生
   for (let i = 0; i < categories.length; i++) {
     const categoryName = categories[i]
     const specialtyName = specialties[i]
@@ -63,20 +68,23 @@ async function main () {
       }
     })
 
-    for (let j = 0; j < 3; j++) {
-      const doctorName = names[j + i * 3]
+    for (let j = 0; j < NUM_DOCTORS_PER_CATEGORY; j++) {
+      const doctorName = names[j + i * NUM_DOCTORS_PER_CATEGORY]
       const schedules = []
       const description = JSON.stringify(doctorDescriptions[j + i * 3]) // 獲取對應的主治專長描述
+      const availableSlots = [...allPossibleSlots]
 
-      for (let k = 0; k < 3; k++) {
-        // 隨機生成日期
-        const date = generateRandomDate(new Date('2024-09-02'), new Date('2024-09-05'))
-        const dayOfWeek = dayMap[date.getDay()] // 獲取星期幾
-        const timeSlot = getRandomElement(timeSlots)
+      // 確保每個科別有 對應數量 時段
+      for (let k = 0; k < NUM_SCHEDULES_PER_DOCTOR; k++) {
+        // 隨機選擇一個時段，並從可用時段中移除
+        const randomIndex = Math.floor(Math.random() * availableSlots.length)
+        const selectedSlot = availableSlots.splice(randomIndex, 1)[0] // 取得並移除該時段
+
+        const { dayOfWeek, date, timeSlot } = selectedSlot
 
         schedules.push({
           scheduleSlot: `${dayOfWeek}_${timeSlot}`,
-          date,
+          date, // 使用對應的日期
           maxAppointments: 10,
           status: 'AVAILABLE'
         })
