@@ -116,8 +116,8 @@ async function main () {
       },
       {
         name: '病患二',
-        medicalId: 'J103371747', // 必須提供唯一的 medicalId
-        idNumber: 'B987654321',
+        medicalId: 'MED002', // 必須提供唯一的 medicalId
+        idNumber: 'J103371747',
         birthDate: new Date('1992-05-10'),
         contactInfo: '聯絡資訊二' // 必須提供 contactInfo
       }

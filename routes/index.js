@@ -12,7 +12,7 @@ router.use('/doctor-schedules', doctorScheduleRoutes)
 router.use('/appointments', appointmentRoutes)
 
 router.get('/', (req, res) => {
-  res.send('Hello World!')
+  return res.send('Hello World!')
 })
 
 module.exports = router

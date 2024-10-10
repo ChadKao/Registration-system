@@ -4,6 +4,7 @@ const appointmentController = require('../../controllers/apis/appointment-contro
 
 // Appointment 路由
 router.post('/', appointmentController.createAppointment)
+router.post('/first-visit', appointmentController.createPatientAndAppointment)
 router.get('/', appointmentController.getAllAppointments)
 router.get('/:id', appointmentController.getAppointmentById)
 router.post('/by-patient', appointmentController.getAppointmentsByPatient)

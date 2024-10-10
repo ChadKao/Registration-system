@@ -8,7 +8,7 @@ const doctorScheduleController = {
       const newSchedule = await prisma.doctorSchedule.create({
         data: { doctorId, scheduleSlot, date, maxAppointments, status }
       })
-      res.status(201).json({ status: 'success', data: newSchedule })
+      return res.status(201).json({ status: 'success', data: newSchedule })
     } catch (error) {
       next(error)
     }
@@ -18,7 +18,7 @@ const doctorScheduleController = {
   getAllDoctorSchedules: async (req, res, next) => {
     try {
       const schedules = await prisma.doctorSchedule.findMany()
-      res.status(200).json({ status: 'success', data: schedules })
+      return res.status(200).json({ status: 'success', data: schedules })
     } catch (error) {
       next(error)
     }
@@ -32,9 +32,9 @@ const doctorScheduleController = {
         where: { id: parseInt(id) }
       })
       if (schedule) {
-        res.status(200).json({ status: 'success', data: schedule })
+        return res.status(200).json({ status: 'success', data: schedule })
       } else {
-        res.status(404).json({ status: 'error', message: 'Schedule not found' })
+        return res.status(404).json({ status: 'error', message: 'Schedule not found' })
       }
     } catch (error) {
       next(error)
@@ -50,7 +50,7 @@ const doctorScheduleController = {
         where: { id: parseInt(id) },
         data: { scheduleSlot, date, maxAppointments, status }
       })
-      res.status(200).json({ status: 'success', data: updatedSchedule })
+      return res.status(200).json({ status: 'success', data: updatedSchedule })
     } catch (error) {
       next(error)
     }
@@ -63,7 +63,7 @@ const doctorScheduleController = {
       const deletedSchedule = await prisma.doctorSchedule.delete({
         where: { id: parseInt(id) }
       })
-      res.status(200).json({ status: 'success', data: deletedSchedule })
+      return res.status(200).json({ status: 'success', data: deletedSchedule })
     } catch (error) {
       next(error)
     }
@@ -97,7 +97,7 @@ const doctorScheduleController = {
         data: { status: isFull ? 'FULL' : 'AVAILABLE' }
       })
 
-      res.status(200).json({
+      return res.status(200).json({
         status: 'success',
         data: {
           scheduleStatus: updatedSchedule.status,
@@ -148,7 +148,7 @@ const doctorScheduleController = {
         }
       })
 
-      res.status(200).json({
+      return res.status(200).json({
         status: 'success',
         data: formattedSchedules
       })
@@ -193,7 +193,7 @@ const doctorScheduleController = {
         }
       })
 
-      res.status(200).json({
+      return res.status(200).json({
         status: 'success',
         data: formattedSchedules
       })

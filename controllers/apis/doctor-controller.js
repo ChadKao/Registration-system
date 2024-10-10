@@ -41,7 +41,7 @@ const doctorController = {
           schedules: true // 包含日程資訊
         }
       })
-      res.status(201).json({
+      return res.status(201).json({
         status: 'success',
         data: newDoctor
       })
@@ -68,7 +68,7 @@ const doctorController = {
         description: doctor.description
       }))
 
-      res.status(200).json({
+      return res.status(200).json({
         status: 'success',
         data: formattedDoctors // 返回格式化後的醫生資料
       })
@@ -97,12 +97,12 @@ const doctorController = {
           schedules: doctor.schedules
         }
 
-        res.status(200).json({
+        return res.status(200).json({
           status: 'success',
           data: formattedDoctor
         })
       } else {
-        res.status(404).json({
+        return res.status(404).json({
           status: 'fail',
           message: "Doctor doesn't exist!"
         })
@@ -144,7 +144,7 @@ const doctorController = {
           specialty: true
         }
       })
-      res.status(200).json({
+      return res.status(200).json({
         status: 'success',
         data: updatedDoctor
       })
@@ -160,7 +160,7 @@ const doctorController = {
       const deletedDoctor = await prisma.doctor.delete({
         where: { id: parseInt(id) }
       })
-      res.status(200).json({
+      return res.status(200).json({
         status: 'success',
         data: deletedDoctor
       }) // 成功刪除後，返回被刪除的deletedDoctor
@@ -173,6 +173,9 @@ const doctorController = {
       const categories = await prisma.category.findMany({
         include: {
           specialties: true // 包含每個類別中的所有專科資料
+        },
+        orderBy: {
+          id: 'asc'
         }
       })
       const formattedCategories = categories.map(category => ({
@@ -180,7 +183,7 @@ const doctorController = {
         specialties: category.specialties.map(specialty => specialty.name) // 只返回專科名稱
       }))
 
-      res.status(200).json({
+      return res.status(200).json({
         status: 'success',
         data: formattedCategories
       })
@@ -201,16 +204,18 @@ const doctorController = {
           ]
         },
         include: {
-          specialty: true // 確保返回專科資料
+          specialty: true, // 確保返回專科資料
+          schedules: true
         }
       })
       const formattedDoctors = doctors.map(doctor => ({
         id: doctor.id,
         name: doctor.name,
         specialty: doctor.specialty.name, // 直接回傳科別名稱
-        description: doctor.description
+        description: doctor.description,
+        schedules: doctor.schedules
       }))
-      res.json(formattedDoctors) // 返回符合條件的醫師資料
+      return res.json(formattedDoctors) // 返回符合條件的醫師資料
     } catch (error) {
       next(error)
     }

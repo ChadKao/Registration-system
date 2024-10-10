@@ -50,7 +50,7 @@ model Doctor {
 
 model Patient {
   id          Int              @id @default(autoincrement())
-  medicalId   String           @unique
+  medicalId   String?          @unique
   idNumber    String           @unique
   birthDate   DateTime
   name        String

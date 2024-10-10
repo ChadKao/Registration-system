@@ -33,7 +33,7 @@ app.use((req, res, next) => {
   if (apiKey && apiKey === VALID_API_KEY) {
     next() // 金鑰有效，繼續處理請求
   } else {
-    res.status(401).json({ message: 'Unauthorized' }) // 金鑰無效，拒絕請求
+    return res.status(401).json({ message: 'Unauthorized' }) // 金鑰無效，拒絕請求
   }
 })
 

@@ -6,13 +6,13 @@ const patientController = {
     const { medicalId, idNumber, birthDate, name, contactInfo } = req.body
     try {
       const existingPatient = await prisma.patient.findUnique({
-        where: { medicalId }
+        where: { idNumber }
       })
 
       if (existingPatient) {
         return res.status(400).json({
           status: 'error',
-          message: 'Patient with this medicalId already exists!'
+          message: 'Patient with this idNumber already exists!'
         })
       }
 
@@ -20,7 +20,7 @@ const patientController = {
       const newPatient = await prisma.patient.create({
         data: { medicalId, idNumber, birthDate, name, contactInfo }
       })
-      res.status(201).json({
+      return res.status(201).json({
         status: 'success',
         data: newPatient
       })
@@ -33,7 +33,7 @@ const patientController = {
   getAllPatients: async (req, res, next) => {
     try {
       const patients = await prisma.patient.findMany()
-      res.status(200).json({
+      return res.status(200).json({
         status: 'success',
         data: patients
       })
@@ -50,12 +50,12 @@ const patientController = {
         where: { id: parseInt(id) }
       })
       if (patient) {
-        res.status(200).json({
+        return res.status(200).json({
           status: 'success',
           data: patient
         })
       } else {
-        res.status(404).json({
+        return res.status(404).json({
           status: 'fail',
           message: "Patient doesn't exist!"
         })
@@ -74,7 +74,7 @@ const patientController = {
         where: { id: parseInt(id) },
         data: { medicalId, idNumber, birthDate, name, contactInfo }
       })
-      res.status(200).json({
+      return res.status(200).json({
         status: 'success',
         data: updatedPatient
       })
@@ -90,7 +90,7 @@ const patientController = {
       const deletedPatient = await prisma.patient.delete({
         where: { id: parseInt(id) }
       })
-      res.status(200).json({
+      return res.status(200).json({
         status: 'success',
         data: deletedPatient
       }) // 成功刪除後，返回被刪除的deletedPatient

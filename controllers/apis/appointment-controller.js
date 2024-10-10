@@ -1,17 +1,25 @@
 const prisma = require('../../services/prisma')
 const secretKey = process.env.RECAPTCHA_SECRET_KEY
 const { validateIdNumber } = require('../../helpers/idValidation')
+const { createPatient } = require('../../services/patient-service')
+const { createAppointment } = require('../../services/appointment-service')
 
 const appointmentController = {
   createAppointment: async (req, res, next) => {
     const { idNumber, birthDate, doctorScheduleId, recaptchaResponse } = req.body
     // 檢查必填資料
     if (!(idNumber && birthDate && recaptchaResponse)) {
-      return res.status(400).json({ error: '缺少必要的資料' })
+      return res.status(400).json({
+        status: 'error',
+        message: '缺少必要的資料'
+      })
     }
     // 驗證身分證字號
     if (!validateIdNumber(idNumber)) {
-      return res.status(400).json({ error: 'Invalid ID number(身分證字號格式錯誤)' })
+      return res.status(400).json({
+        status: 'error',
+        message: 'Invalid ID number(身分證字號格式錯誤)'
+      })
     }
     try {
       // 驗證 reCAPTCHA
@@ -29,7 +37,10 @@ const appointmentController = {
 
       // 驗證失敗，返回錯誤訊息
       if (!verificationData.success) {
-        return res.status(400).json({ error: 'reCAPTCHA 驗證失敗' })
+        return res.status(400).json({
+          status: 'error',
+          message: 'reCAPTCHA 驗證失敗'
+        })
       }
 
       // 查詢該病人的 patientId
@@ -137,17 +148,48 @@ const appointmentController = {
         })
       }
 
-      res.status(201).json({ status: 'success', data: formattedAppointment })
+      return res.status(201).json({ status: 'success', data: formattedAppointment })
     } catch (error) {
       next(error)
     }
   },
 
+  createPatientAndAppointment: async (req, res, next) => {
+    try {
+      const newPatient = await createPatient(req, res, next)
+
+      if (!newPatient) {
+        return res.status(400).json({
+          status: 'fail',
+          message: 'Patient and Appointment creation failed.'
+        })
+      }
+
+      const formattedAppointment = await createAppointment(req, res, next)
+
+      if (formattedAppointment) {
+        return res.status(201).json({
+          status: 'success',
+          data: {
+            patient: newPatient,
+            appointment: formattedAppointment
+          }
+        })
+      } else {
+        return res.status(400).json({
+          status: 'fail',
+          message: 'Appointment creation failed, but patient created successfully.'
+        })
+      }
+    } catch (error) {
+      next(error)
+    }
+  },
   // 查詢所有預約
   getAllAppointments: async (req, res, next) => {
     try {
       const appointments = await prisma.appointment.findMany()
-      res.status(200).json({ status: 'success', data: appointments })
+      return res.status(200).json({ status: 'success', data: appointments })
     } catch (error) {
       next(error)
     }
@@ -161,9 +203,9 @@ const appointmentController = {
         where: { id: parseInt(id) }
       })
       if (appointment) {
-        res.status(200).json({ status: 'success', data: appointment })
+        return res.status(200).json({ status: 'success', data: appointment })
       } else {
-        res.status(404).json({ status: 'error', message: 'Appointment not found' })
+        return res.status(404).json({ status: 'error', message: 'Appointment not found' })
       }
     } catch (error) {
       next(error)
@@ -176,11 +218,17 @@ const appointmentController = {
 
     // 檢查必填資料
     if (!(idNumber && birthDate && recaptchaResponse)) {
-      return res.status(400).json({ error: '缺少必要的資料' })
+      return res.status(400).json({
+        status: 'error',
+        message: '缺少必要的資料'
+      })
     }
     // 驗證身分證字號
     if (!validateIdNumber(idNumber)) {
-      return res.status(400).json({ error: 'Invalid ID number(身分證字號格式錯誤)' })
+      return res.status(400).json({
+        status: 'error',
+        message: 'Invalid ID number(身分證字號格式錯誤)'
+      })
     }
 
     try {
@@ -199,7 +247,10 @@ const appointmentController = {
 
       // 驗證失敗，返回錯誤訊息
       if (!verificationData.success) {
-        return res.status(400).json({ error: 'reCAPTCHA 驗證失敗' })
+        return res.status(400).json({
+          status: 'error',
+          message: 'reCAPTCHA 驗證失敗'
+        })
       }
 
       // 查詢病人的所有掛號紀錄，並包含相關的醫生排班資料
@@ -242,7 +293,7 @@ const appointmentController = {
         status: appointment.status
       }))
 
-      res.status(200).json({
+      return res.status(200).json({
         status: 'success',
         data: formattedAppointments
       })
@@ -260,7 +311,7 @@ const appointmentController = {
         where: { id: parseInt(id) },
         data: { status }
       })
-      res.status(200).json({ status: 'success', data: updatedAppointment })
+      return res.status(200).json({ status: 'success', data: updatedAppointment })
     } catch (error) {
       next(error)
     }
@@ -273,7 +324,7 @@ const appointmentController = {
       const deletedAppointment = await prisma.appointment.delete({
         where: { id: parseInt(id) }
       })
-      res.status(200).json({ status: 'success', data: deletedAppointment })
+      return res.status(200).json({ status: 'success', data: deletedAppointment })
     } catch (error) {
       next(error)
     }
@@ -307,7 +358,7 @@ const appointmentController = {
         consultationNumber: updatedAppointment.consultationNumber,
         status: updatedAppointment.status
       }
-      res.status(200).json({ status: 'success', data: formattedAppointment })
+      return res.status(200).json({ status: 'success', data: formattedAppointment })
     } catch (error) {
       next(error)
     }
