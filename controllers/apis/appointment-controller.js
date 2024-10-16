@@ -132,6 +132,7 @@ const appointmentController = {
       const formattedAppointment = {
         appointmentId: newAppointment.id,
         date: newAppointment.doctorSchedule.date,
+        doctorScheduleId: newAppointment.doctorSchedule.id,
         scheduleSlot: newAppointment.doctorSchedule.scheduleSlot,
         doctorName: newAppointment.doctorSchedule.doctor.name,
         doctorSpecialty: newAppointment.doctorSchedule.doctor.specialty.name,
@@ -158,29 +159,15 @@ const appointmentController = {
     try {
       const newPatient = await createPatient(req, res, next)
 
-      if (!newPatient) {
-        return res.status(400).json({
-          status: 'fail',
-          message: 'Patient and Appointment creation failed.'
-        })
-      }
-
       const formattedAppointment = await createAppointment(req, res, next)
 
-      if (formattedAppointment) {
-        return res.status(201).json({
-          status: 'success',
-          data: {
-            patient: newPatient,
-            appointment: formattedAppointment
-          }
-        })
-      } else {
-        return res.status(400).json({
-          status: 'fail',
-          message: 'Appointment creation failed, but patient created successfully.'
-        })
-      }
+      return res.status(201).json({
+        status: 'success',
+        data: {
+          patient: newPatient,
+          appointment: formattedAppointment
+        }
+      })
     } catch (error) {
       next(error)
     }
@@ -286,6 +273,7 @@ const appointmentController = {
       const formattedAppointments = appointments.map(appointment => ({
         appointmentId: appointment.id,
         date: appointment.doctorSchedule.date,
+        doctorScheduleId: appointment.doctorSchedule.id,
         scheduleSlot: appointment.doctorSchedule.scheduleSlot,
         doctorName: appointment.doctorSchedule.doctor.name,
         doctorSpecialty: appointment.doctorSchedule.doctor.specialty.name,
@@ -352,6 +340,7 @@ const appointmentController = {
       const formattedAppointment = {
         appointmentId: updatedAppointment.id,
         date: updatedAppointment.doctorSchedule.date,
+        doctorScheduleId: updatedAppointment.doctorSchedule.id,
         scheduleSlot: updatedAppointment.doctorSchedule.scheduleSlot,
         doctorName: updatedAppointment.doctorSchedule.doctor.name,
         doctorSpecialty: updatedAppointment.doctorSchedule.doctor.specialty.name,

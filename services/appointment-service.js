@@ -129,6 +129,7 @@ const createAppointment = async (req, res, next) => {
     const formattedAppointment = {
       appointmentId: newAppointment.id,
       date: newAppointment.doctorSchedule.date,
+      doctorScheduleId: newAppointment.doctorSchedule.id,
       scheduleSlot: newAppointment.doctorSchedule.scheduleSlot,
       doctorName: newAppointment.doctorSchedule.doctor.name,
       doctorSpecialty: newAppointment.doctorSchedule.doctor.specialty.name,
