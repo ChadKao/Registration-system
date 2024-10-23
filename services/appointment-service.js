@@ -1,116 +1,103 @@
 const prisma = require('./prisma')
 const { validateIdNumber } = require('../helpers/idValidation')
 const secretKey = process.env.RECAPTCHA_SECRET_KEY
+const AppError = require('../errors/AppError')
 
-const createAppointment = async (req, res, next) => {
-  const { idNumber, birthDate, doctorScheduleId, recaptchaResponse } = req.body
+const createAppointment = async (appointmentData) => {
+  const { idNumber, birthDate, doctorScheduleId, recaptchaResponse } = appointmentData
   // 檢查必填資料
   if (!(idNumber && birthDate && recaptchaResponse)) {
-    return res.status(400).json({
-      status: 'error',
-      message: '缺少必要的資料'
-    })
+    throw new AppError('缺少必要的資料', 400)
   }
   // 驗證身分證字號
   if (!validateIdNumber(idNumber)) {
-    return res.status(400).json({
-      status: 'error',
-      message: 'Invalid ID number(身分證字號格式錯誤)'
-    })
+    throw new AppError('Invalid ID number (身分證字號格式錯誤)', 400)
   }
-  try {
-    // 驗證 reCAPTCHA
-    const verificationURL = 'https://www.google.com/recaptcha/api/siteverify'
-    const verificationParams = new URLSearchParams()
-    verificationParams.append('secret', secretKey)
-    verificationParams.append('response', recaptchaResponse)
 
-    const verificationResponse = await fetch(verificationURL, {
-      method: 'POST',
-      body: verificationParams // 使用 x-www-form-urlencoded 格式
-    })
+  // 驗證 reCAPTCHA
+  const verificationURL = 'https://www.google.com/recaptcha/api/siteverify'
+  const verificationParams = new URLSearchParams()
+  verificationParams.append('secret', secretKey)
+  verificationParams.append('response', recaptchaResponse)
 
-    const verificationData = await verificationResponse.json()
+  const verificationResponse = await fetch(verificationURL, {
+    method: 'POST',
+    body: verificationParams // 使用 x-www-form-urlencoded 格式
+  })
 
-    // 驗證失敗，返回錯誤訊息
-    if (!verificationData.success) {
-      return res.status(400).json({
-        status: 'error',
-        message: 'reCAPTCHA 驗證失敗'
-      })
+  const verificationData = await verificationResponse.json()
+
+  // 驗證失敗，返回錯誤訊息
+  if (!verificationData.success) {
+    throw new AppError('reCAPTCHA 驗證失敗', 400)
+  }
+
+  // 查詢該病人的 patientId
+  const patient = await prisma.patient.findUnique({
+    where: {
+      idNumber,
+      birthDate: new Date(birthDate)
     }
+  })
 
-    // 查詢該病人的 patientId
-    const patient = await prisma.patient.findUnique({
-      where: {
-        idNumber,
-        birthDate: new Date(birthDate)
-      }
-    })
+  if (!patient) {
+    throw new AppError('Patient not found.(若為初診病人，請先填寫初診資料)', 404)
+  }
 
-    if (!patient) {
-      return res.status(404).json({
-        status: 'fail',
-        message: 'Patient not found.(若為初診病人，請先填寫初診資料)'
-      })
+  const patientId = patient.id // 獲取 patientId
+
+  // 查詢該時段的詳細資料
+  const schedule = await prisma.doctorSchedule.findUnique({
+    where: { id: doctorScheduleId },
+    include: {
+      appointments: true // 查詢相關的appointments
     }
+  })
 
-    const patientId = patient.id // 獲取 patientId
+  if (!schedule) {
+    throw new AppError('Schedule not found.', 404)
+  }
 
-    // 查詢該時段的詳細資料
-    const schedule = await prisma.doctorSchedule.findUnique({
-      where: { id: doctorScheduleId },
-      include: {
-        appointments: true // 查詢相關的appointments
-      }
-    })
+  // 檢查時段狀態是否為 FULL
+  if (schedule.status === 'FULL') {
+    throw new AppError('This time slot is fully booked.', 400)
+  }
 
-    if (!schedule) {
-      return res.status(404).json({
-        status: 'fail',
-        message: 'Schedule not found.'
-      })
+  // 先查詢是否有重複掛號的紀錄
+  const existingAppointment = await prisma.appointment.findFirst({
+    where: {
+      patientId,
+      doctorScheduleId,
+      status: 'CONFIRMED' // 確認過的掛號，避免已取消的掛號被算進去
     }
+  })
 
-    // 檢查時段狀態是否為 FULL
-    if (schedule.status === 'FULL') {
-      return res.status(400).json({
-        status: 'fail',
-        message: 'This time slot is fully booked.'
-      })
-    }
+  // 如果已經有掛號紀錄，則返回錯誤
+  if (existingAppointment) {
+    throw new AppError('You have already booked this time slot.', 400)
+  }
 
-    // 先查詢是否有重複掛號的紀錄
-    const existingAppointment = await prisma.appointment.findFirst({
-      where: {
-        patientId,
-        doctorScheduleId,
-        status: 'CONFIRMED' // 確認過的掛號，避免已取消的掛號被算進去
-      }
-    })
+  // 查詢該時段所有的看診號碼，並找到最大值
+  const existingConsultationNumbers = await prisma.appointment.findMany({
+    where: { doctorScheduleId },
+    select: { consultationNumber: true }
+  })
 
-    // 如果已經有掛號紀錄，則返回錯誤
-    if (existingAppointment) {
-      return res.status(400).json({
-        status: 'fail',
-        message: 'You have already booked this time slot.'
-      })
-    }
+  const maxConsultationNumber = existingConsultationNumbers.length > 0
+    ? Math.max(...existingConsultationNumbers.map(appointment => appointment.consultationNumber))
+    : 0
 
-    // 查詢該時段所有的看診號碼，並找到最大值
-    const existingConsultationNumbers = await prisma.appointment.findMany({
-      where: { doctorScheduleId },
-      select: { consultationNumber: true }
-    })
+  const consultationNumber = maxConsultationNumber + 1
 
-    const maxConsultationNumber = existingConsultationNumbers.length > 0
-      ? Math.max(...existingConsultationNumbers.map(appointment => appointment.consultationNumber))
-      : 0
+  // 檢查剩餘名額
+  const bookedAppointments = schedule.appointments.filter(appointment => appointment.status === 'CONFIRMED').length
+  const slotsRemaining = schedule.maxAppointments - bookedAppointments
 
-    const consultationNumber = maxConsultationNumber + 1
+  let newAppointment
 
-    // 如果沒有重複掛號，則創建新掛號
-    const newAppointment = await prisma.appointment.create({
+  if (slotsRemaining > 3) {
+    // 名額足夠，不需要加鎖，直接創建預約
+    newAppointment = await prisma.appointment.create({
       data: { patientId, doctorScheduleId, status: 'CONFIRMED', consultationNumber },
       include: {
         doctorSchedule: {
@@ -125,18 +112,6 @@ const createAppointment = async (req, res, next) => {
       }
     })
 
-    // 格式化掛號資料
-    const formattedAppointment = {
-      appointmentId: newAppointment.id,
-      date: newAppointment.doctorSchedule.date,
-      doctorScheduleId: newAppointment.doctorSchedule.id,
-      scheduleSlot: newAppointment.doctorSchedule.scheduleSlot,
-      doctorName: newAppointment.doctorSchedule.doctor.name,
-      doctorSpecialty: newAppointment.doctorSchedule.doctor.specialty.name,
-      consultationNumber: newAppointment.consultationNumber,
-      status: newAppointment.status
-    }
-
     // 檢查並更新時段狀態
     const updatedBookedAppointments = schedule.appointments.filter(appointment => appointment.status === 'CONFIRMED').length + 1
     if (updatedBookedAppointments >= schedule.maxAppointments) {
@@ -145,11 +120,58 @@ const createAppointment = async (req, res, next) => {
         data: { status: 'FULL' }
       })
     }
+  } else {
+    // 使用交易和悲觀鎖進行保護，名額少於等於 3 時
+    newAppointment = await prisma.$transaction(async (prisma) => {
+      const [lockedSchedule] = await prisma.$queryRaw`SELECT * FROM DoctorSchedule WHERE id = ${doctorScheduleId} FOR UPDATE`
 
-    return formattedAppointment
-  } catch (error) {
-    next(error)
+      if (lockedSchedule.status === 'AVAILABLE') {
+        // 創建新掛號
+        const appointment = await prisma.appointment.create({
+          data: { patientId, doctorScheduleId, status: 'CONFIRMED', consultationNumber },
+          include: {
+            doctorSchedule: {
+              include: {
+                doctor: {
+                  include: {
+                    specialty: true // 確保包含醫生及其專科資料
+                  }
+                }
+              }
+            }
+          }
+        })
+
+        // 檢查並更新時段狀態
+        const updatedBookedAppointments = schedule.appointments.filter(appointment => appointment.status === 'CONFIRMED').length + 1
+        if (updatedBookedAppointments >= schedule.maxAppointments) {
+          await prisma.doctorSchedule.update({
+            where: { id: doctorScheduleId },
+            data: { status: 'FULL' }
+          })
+        }
+
+        return appointment
+      } else {
+        // 名額已滿，回傳錯誤或進行其他處理
+        throw new AppError('名額已滿，無法預約', 400)
+      }
+    })
   }
+
+  // 格式化掛號資料
+  const formattedAppointment = {
+    appointmentId: newAppointment.id,
+    date: newAppointment.doctorSchedule.date,
+    doctorScheduleId: newAppointment.doctorSchedule.id,
+    scheduleSlot: newAppointment.doctorSchedule.scheduleSlot,
+    doctorName: newAppointment.doctorSchedule.doctor.name,
+    doctorSpecialty: newAppointment.doctorSchedule.doctor.specialty.name,
+    consultationNumber: newAppointment.consultationNumber,
+    status: newAppointment.status
+  }
+
+  return formattedAppointment
 }
 
 module.exports = {
