@@ -45,6 +45,15 @@ for (const day of scheduleArray) {
   }
 }
 
+// 映射星期幾為數字方便排序
+const dayOrderMap = {
+  Monday: 1,
+  Tuesday: 2,
+  Wednesday: 3,
+  Thursday: 4,
+  Friday: 5
+}
+
 async function main () {
   // 定義科別
   const categories = ['內科', '外科', '其他']
@@ -89,6 +98,20 @@ async function main () {
           status: 'AVAILABLE'
         })
       }
+
+      // 根據 dayOfWeek 和 timeSlot 排序 schedules
+      schedules.sort((a, b) => {
+        const dayA = dayOrderMap[a.scheduleSlot.split('_')[0]]
+        const dayB = dayOrderMap[b.scheduleSlot.split('_')[0]]
+
+        // 如果是同一天，再比較 Morning 和 Afternoon
+        if (dayA === dayB) {
+          const timeA = a.scheduleSlot.includes('Morning') ? 0 : 1
+          const timeB = b.scheduleSlot.includes('Morning') ? 0 : 1
+          return timeA - timeB
+        }
+        return dayA - dayB
+      })
 
       await prisma.doctor.create({
         data: {

@@ -12,7 +12,7 @@ const cors = require('cors')
 // 允許的前端域名 (包括本地開發和生產環境)
 const allowedOrigins = [
   'http://localhost:3000', // 本地開發時的前端域名
-  'https://medical-appointment-eight.vercel.app/' // 生產環境中的前端域名
+  'https://medical-appointment-eight.vercel.app' // 生產環境中的前端域名
 ]
 
 // CORS 設定
