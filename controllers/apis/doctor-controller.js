@@ -1,5 +1,6 @@
 // /controllers/apis/doctor-controller.js
 const prisma = require('../../services/prisma')
+const { Prisma } = require('@prisma/client')
 
 const doctorController = {
   // 新增醫生
@@ -53,23 +54,71 @@ const doctorController = {
   // 查詢所有醫生
   getAllDoctors: async (req, res, next) => {
     try {
-      // 從資料庫獲取所有醫生資料，並包含其科別資訊
-      const doctors = await prisma.doctor.findMany({
-        include: {
-          specialty: true // 包含專科資訊
-        }
-      })
+      const totalDoctors = await prisma.doctor.count()
+      let limit = req.query.limit ? Number(req.query.limit) : totalDoctors // 預設取全部醫師
+      limit = limit > totalDoctors ? totalDoctors : limit < 1 ? 1 : limit
+      const totalPage = limit ? Math.ceil(totalDoctors / limit) : 1 // 預設1頁
+      let page = Number(req.query.page) || 1 // 預設第1頁
+      page = page > totalPage ? totalPage : page < 1 ? 1 : page
+      const offset = limit ? (page - 1) * limit : 0 // 預設無略過
+
+      const sort = req.query.sort || 'specialty' // 預設依科別排序
+      const order = req.query.order === 'desc' ? 'desc' : 'asc' // 預設為升序
+
+      // 驗證排序欄位，確保它是有效的
+      const validSortFields = ['name', 'specialty', 'id']
+      if (!validSortFields.includes(sort)) {
+        return res.status(400).json({
+          status: 'error',
+          message: 'Invalid sort field'
+        })
+      }
+
+      let doctors
+
+      if (sort === 'name') {
+        doctors = await prisma.$queryRaw`
+        SELECT d.*, s.name AS specialty_name
+        FROM Doctor AS d
+        LEFT JOIN Specialty AS s ON d.specialtyId = s.id
+        ORDER BY CONVERT(d.name USING BIG5)  ${Prisma.sql([order])}
+         LIMIT ${limit} OFFSET ${offset}
+      `
+      } else if (sort === 'specialty') {
+        doctors = await prisma.$queryRaw`
+        SELECT d.*, s.name AS specialty_name
+        FROM Doctor AS d
+        LEFT JOIN Specialty AS s ON d.specialtyId = s.id
+        ORDER BY CONVERT(specialty_name USING BIG5)  ${Prisma.sql([order])}
+         LIMIT ${limit} OFFSET ${offset}
+      `
+      } else {
+        doctors = await prisma.doctor.findMany({
+          include: {
+            specialty: true // 包含專科資訊
+          },
+          take: limit,
+          skip: offset,
+          orderBy: {
+            [sort]: order // 根據請求中的排序參數排序
+          }
+        })
+      }
 
       // 格式化回傳資料，提取必要的欄位
       const formattedDoctors = doctors.map(doctor => ({
         id: doctor.id,
         name: doctor.name,
-        specialty: doctor.specialty.name, // 直接回傳科別名稱
+        specialty: doctor.specialty_name || doctor.specialty.name, // 直接回傳科別名稱
         description: doctor.description
       }))
 
       return res.status(200).json({
         status: 'success',
+        totalDoctors,
+        page,
+        totalPage,
+        limit,
         data: formattedDoctors // 返回格式化後的醫生資料
       })
     } catch (error) {

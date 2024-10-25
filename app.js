@@ -27,6 +27,10 @@ app.use(cors({
   }
 }))
 
+app.get('/health', (req, res) => {
+  res.status(200).json({ status: 'healthy' })
+})
+
 // 中介軟件來驗證 API 金鑰
 app.use((req, res, next) => {
   const apiKey = req.headers['x-api-key']
