@@ -55,7 +55,9 @@ model Patient {
   birthDate   DateTime
   name        String
   contactInfo String
+  password    String?
   appointments Appointment[]   // 病人的掛號
+  authProvider String?
 }
 
 model DoctorSchedule {
@@ -65,7 +67,7 @@ model DoctorSchedule {
   date              DateTime // 表示具體日期，例如 '2024-01-01'
   maxAppointments   Int      // 該時段的最大掛號人數
   status            ScheduleStatus // 醫生排班的狀態
-  doctor            Doctor   @relation(fields: [doctorId], references: [id])
+  doctor            Doctor   @relation(fields: [doctorId], references: [id], onDelete: Cascade)
   appointments      Appointment[]  // 該時段的掛號
 }
 

@@ -129,7 +129,7 @@ const appointmentController = {
       // 如果沒有找到掛號紀錄，返回 404
       if (appointments.length === 0) {
         return res.status(404).json({
-          status: 'fail',
+          status: 'error',
           message: 'No appointments found for this patient.'
         })
       }

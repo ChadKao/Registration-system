@@ -82,7 +82,7 @@ const doctorScheduleController = {
 
       if (!schedule) {
         return res.status(404).json({
-          status: 'fail',
+          status: 'error',
           message: 'Schedule not found.'
         })
       }

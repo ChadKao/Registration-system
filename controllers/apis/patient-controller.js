@@ -1,10 +1,20 @@
 const prisma = require('../../services/prisma')
+const bcrypt = require('bcryptjs')
+const jwt = require('jsonwebtoken')
+const { validateIdNumber } = require('../../helpers/idValidation')
 
 const patientController = {
   // 新增病人
   createPatient: async (req, res, next) => {
-    const { medicalId, idNumber, birthDate, name, contactInfo } = req.body
+    const { medicalId, idNumber, birthDate, name, contactInfo, password } = req.body
     try {
+      // 驗證身分證字號
+      if (!validateIdNumber(idNumber)) {
+        return res.status(400).json({
+          status: 'error',
+          message: 'Invalid ID number(身分證字號格式錯誤)'
+        })
+      }
       const existingPatient = await prisma.patient.findUnique({
         where: { idNumber }
       })
@@ -15,11 +25,15 @@ const patientController = {
           message: 'Patient with this idNumber already exists!'
         })
       }
+      const hashedPassword = password ? await bcrypt.hash(password, 10) : null
 
       // 如果不存在，則繼續創建新病人
       const newPatient = await prisma.patient.create({
-        data: { medicalId, idNumber, birthDate, name, contactInfo }
+        data: { medicalId, idNumber, birthDate, name, contactInfo, password: hashedPassword }
       })
+      // 移除敏感的 hashedPassword 欄位
+      delete newPatient.password
+
       return res.status(201).json({
         status: 'success',
         data: newPatient
@@ -56,7 +70,7 @@ const patientController = {
         })
       } else {
         return res.status(404).json({
-          status: 'fail',
+          status: 'error',
           message: "Patient doesn't exist!"
         })
       }
@@ -96,6 +110,22 @@ const patientController = {
       }) // 成功刪除後，返回被刪除的deletedPatient
     } catch (error) {
       next(error) // 將錯誤傳遞給錯誤處理中介軟體
+    }
+  },
+  signIn: (req, res, next) => {
+    try {
+      const userData = req.user
+      const token = jwt.sign({ id: userData.id }, process.env.JWT_SECRET, { expiresIn: '30d' }) // 簽發 JWT，效期為 30 天
+      delete userData.password
+      res.json({
+        status: 'success',
+        data: {
+          token,
+          user: userData
+        }
+      })
+    } catch (err) {
+      next(err)
     }
   }
 }

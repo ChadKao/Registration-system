@@ -1,4 +1,6 @@
 const prisma = require('../services/prisma')
+const bcrypt = require('bcryptjs')
+
 // 可配置變數
 const NUM_DOCTORS_PER_CATEGORY = 3 // 每個科別的醫生數量
 const NUM_SCHEDULES_PER_DOCTOR = 3 // 每位醫生的時段數量
@@ -135,7 +137,8 @@ async function main () {
         medicalId: 'MED001', // 必須提供唯一的 medicalId
         idNumber: 'K207654606',
         birthDate: new Date('1990-01-01'),
-        contactInfo: '聯絡資訊一' // 必須提供 contactInfo
+        contactInfo: '聯絡資訊一', // 必須提供 contactInfo,
+        password: await bcrypt.hash('test', 10)
       },
       {
         name: '病患二',

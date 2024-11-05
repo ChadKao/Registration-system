@@ -5,8 +5,7 @@ const port = process.env.PORT || 3000
 const prisma = require('./services/prisma')
 const apiErrorHandler = require('./middleware/apiErrorHandler')
 
-const VALID_API_KEY = process.env.VALID_API_KEY || 'your_default_api_key'
-
+const VALID_API_KEY = process.env.VALID_API_KEY
 const cors = require('cors')
 
 // 允許的前端域名 (包括本地開發和生產環境)
@@ -37,7 +36,10 @@ app.use((req, res, next) => {
   if (apiKey && apiKey === VALID_API_KEY) {
     next() // 金鑰有效，繼續處理請求
   } else {
-    return res.status(401).json({ message: 'Unauthorized' }) // 金鑰無效，拒絕請求
+    return res.status(401).json({
+      status: 'error',
+      message: 'Unauthorized'
+    }) // 金鑰無效，拒絕請求
   }
 })
 

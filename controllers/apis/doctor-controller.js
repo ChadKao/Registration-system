@@ -11,7 +11,7 @@ const doctorController = {
       // 驗證輸入資料
       if (!name || !specialty) {
         return res.status(400).json({
-          status: 'fail',
+          status: 'error',
           message: 'Name and specialty are required.'
         })
       }
@@ -22,7 +22,7 @@ const doctorController = {
 
       if (!foundSpecialty) {
         return res.status(400).json({
-          status: 'fail',
+          status: 'error',
           message: `Specialty "${specialty}" not found!`
         })
       }
@@ -152,7 +152,7 @@ const doctorController = {
         })
       } else {
         return res.status(404).json({
-          status: 'fail',
+          status: 'error',
           message: "Doctor doesn't exist!"
         })
       }
@@ -174,7 +174,7 @@ const doctorController = {
       // 如果沒有找到對應的專科，返回錯誤
       if (!foundSpecialty) {
         return res.status(404).json({
-          status: 'fail',
+          status: 'error',
           message: `Specialty "${specialty}" not found!`
         })
       }
