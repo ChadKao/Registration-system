@@ -2,7 +2,7 @@ const passport = require('passport')
 const LocalStrategy = require('passport-local').Strategy
 const prisma = require('../services/prisma')
 const bcrypt = require('bcryptjs')
-// const GoogleOneTapStrategy = require('passport-google-one-tap').GoogleOneTapStrategy
+const GoogleOneTapStrategy = require('passport-google-one-tap').GoogleOneTapStrategy
 const passportJWT = require('passport-jwt')
 
 const JWTStrategy = passportJWT.Strategy
@@ -27,40 +27,34 @@ passport.use(new LocalStrategy({
   }
 }))
 
-// passport.use(
-//   new GoogleOneTapStrategy(
-//     {
-//       clientID: process.env.GOOGLE_CLIENT_ID,
-//       clientSecret: process.env.GOOGLE_CLIENT_SECRET,
-//       verifyCsrfToken: false // 可選，測試期間可以設為 false，正式上線建議開啟
-//     },
-//     async (profile, done) => {
-//       try {
-//         const existingUser = await prisma.patient.findUnique({
-//           where: { email: profile.emails[0].value }
-//         })
+passport.use(
+  new GoogleOneTapStrategy(
+    {
+      clientID: process.env.GOOGLE_CLIENT_ID,
+      // clientSecret: process.env.GOOGLE_CLIENT_SECRET,
+      verifyCsrfToken: false // 可選，測試期間可以設為 false，正式上線建議開啟
+    },
+    async (profile, done) => {
+      try {
+        const existingUser = await prisma.patient.findUnique({
+          where: { email: profile.emails[0].value }
+        })
 
-//         if (existingUser) {
-//           return done(null, existingUser) // 如果用戶存在，返回用戶
-//         } else {
-//           // 若用戶不存在，創建新用戶但不包含 idNumber
-//           const newUser = await prisma.patient.create({
-//             data: {
-//               name: profile.displayName,
-//               email: profile.emails[0].value,
-//               requiresCompletion: true // 需要填寫額外資料
-//             }
-//           })
-
-//           // 將新用戶信息存入 session，然後重定向到填寫 idNumber 的頁面
-//           return done(null, newUser)
-//         }
-//       } catch (error) {
-//         return done(error)
-//       }
-//     }
-//   )
-// )
+        if (existingUser) {
+          return done(null, existingUser) // 這邊會將existingUser附在req.user上 或(err, user)的user
+        } else {
+          const user = {
+            email: profile.emails[0].value,
+            requiresCompletion: true
+          }
+          return done(null, user)
+        }
+      } catch (error) {
+        return done(error)
+      }
+    }
+  )
+)
 
 const jwtOptions = {
   jwtFromRequest: ExtractJWT.fromAuthHeaderAsBearerToken(),

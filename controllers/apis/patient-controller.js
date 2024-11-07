@@ -1,12 +1,11 @@
 const prisma = require('../../services/prisma')
 const bcrypt = require('bcryptjs')
-const jwt = require('jsonwebtoken')
 const { validateIdNumber } = require('../../helpers/idValidation')
 
 const patientController = {
   // 新增病人
   createPatient: async (req, res, next) => {
-    const { medicalId, idNumber, birthDate, name, contactInfo, password } = req.body
+    const { medicalId, idNumber, birthDate, name, email, password } = req.body
     try {
       // 驗證身分證字號
       if (!validateIdNumber(idNumber)) {
@@ -29,7 +28,7 @@ const patientController = {
 
       // 如果不存在，則繼續創建新病人
       const newPatient = await prisma.patient.create({
-        data: { medicalId, idNumber, birthDate, name, contactInfo, password: hashedPassword }
+        data: { medicalId, idNumber, birthDate, name, email, password: hashedPassword }
       })
       // 移除敏感的 hashedPassword 欄位
       delete newPatient.password
@@ -39,7 +38,7 @@ const patientController = {
         data: newPatient
       })
     } catch (error) {
-      next(error) // 將錯誤傳遞給錯誤處理中介軟體
+      next(error)
     }
   },
 
@@ -52,7 +51,7 @@ const patientController = {
         data: patients
       })
     } catch (error) {
-      next(error) // 將錯誤傳遞給錯誤處理中介軟體
+      next(error)
     }
   },
 
@@ -75,25 +74,25 @@ const patientController = {
         })
       }
     } catch (error) {
-      next(error) // 將錯誤傳遞給錯誤處理中介軟體
+      next(error)
     }
   },
 
   // 更新病人
   updatePatient: async (req, res, next) => {
     const { id } = req.params
-    const { medicalId, idNumber, birthDate, name, contactInfo } = req.body
+    const { medicalId, idNumber, birthDate, name, email } = req.body
     try {
       const updatedPatient = await prisma.patient.update({
         where: { id: parseInt(id) },
-        data: { medicalId, idNumber, birthDate, name, contactInfo }
+        data: { medicalId, idNumber, birthDate, name, email }
       })
       return res.status(200).json({
         status: 'success',
         data: updatedPatient
       })
     } catch (error) {
-      next(error) // 將錯誤傳遞給錯誤處理中介軟體
+      next(error)
     }
   },
 
@@ -109,23 +108,7 @@ const patientController = {
         data: deletedPatient
       }) // 成功刪除後，返回被刪除的deletedPatient
     } catch (error) {
-      next(error) // 將錯誤傳遞給錯誤處理中介軟體
-    }
-  },
-  signIn: (req, res, next) => {
-    try {
-      const userData = req.user
-      const token = jwt.sign({ id: userData.id }, process.env.JWT_SECRET, { expiresIn: '30d' }) // 簽發 JWT，效期為 30 天
-      delete userData.password
-      res.json({
-        status: 'success',
-        data: {
-          token,
-          user: userData
-        }
-      })
-    } catch (err) {
-      next(err)
+      next(error)
     }
   }
 }

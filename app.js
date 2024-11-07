@@ -4,6 +4,7 @@ const app = express()
 const port = process.env.PORT || 3000
 const prisma = require('./services/prisma')
 const apiErrorHandler = require('./middleware/apiErrorHandler')
+const passport = require('./config/passport')
 
 const VALID_API_KEY = process.env.VALID_API_KEY
 const cors = require('cors')
@@ -13,7 +14,7 @@ const allowedOrigins = [
   'http://localhost:3000', // 本地開發時的前端域名
   'https://medical-appointment-eight.vercel.app' // 生產環境中的前端域名
 ]
-
+app.use(passport.initialize())
 // CORS 設定
 app.use(cors({
   origin: function (origin, callback) {

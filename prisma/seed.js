@@ -134,18 +134,18 @@ async function main () {
     data: [
       {
         name: '病患一',
-        medicalId: 'MED001', // 必須提供唯一的 medicalId
+        medicalId: 'MED001',
         idNumber: 'K207654606',
         birthDate: new Date('1990-01-01'),
-        contactInfo: '聯絡資訊一', // 必須提供 contactInfo,
+        email: 'user1@email',
         password: await bcrypt.hash('test', 10)
       },
       {
         name: '病患二',
-        medicalId: 'MED002', // 必須提供唯一的 medicalId
+        medicalId: 'MED002',
         idNumber: 'J103371747',
         birthDate: new Date('1992-05-10'),
-        contactInfo: '聯絡資訊二' // 必須提供 contactInfo
+        email: 'user2@email'
       }
     ]
   })

@@ -2,8 +2,8 @@ const prisma = require('./prisma')
 const { validateIdNumber } = require('../helpers/idValidation')
 
 const createPatient = async (req, res, next) => {
-  const { medicalId, idNumber, birthDate, name, contactInfo } = req.body
-  if (!(idNumber && birthDate && name && contactInfo)) {
+  const { medicalId, idNumber, birthDate, name, email } = req.body
+  if (!(idNumber && birthDate && name && email)) {
     return res.status(400).json({
       status: 'error',
       message: '缺少必要的資料'
@@ -30,7 +30,7 @@ const createPatient = async (req, res, next) => {
 
     // 如果不存在，則繼續創建新病人
     const newPatient = await prisma.patient.create({
-      data: { medicalId, idNumber, birthDate, name, contactInfo }
+      data: { medicalId, idNumber, birthDate, name, email }
     })
     return newPatient
   } catch (error) {

@@ -54,7 +54,7 @@ model Patient {
   idNumber    String           @unique
   birthDate   DateTime
   name        String
-  contactInfo String
+  email       String?          @unique
   password    String?
   appointments Appointment[]   // 病人的掛號
   authProvider String?

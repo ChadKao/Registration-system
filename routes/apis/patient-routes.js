@@ -3,10 +3,12 @@ const express = require('express')
 const router = express.Router()
 const patientController = require('../../controllers/apis/patient-controller')
 const passport = require('../../config/passport')
+const { authenticatedByLocal } = require('../../middleware/api-auth')
+const authController = require('../../controllers/auth-controller')
 
-// 病人 CRUD API 路由
-
-router.post('/sign-in', passport.authenticate('local', { session: false }), patientController.signIn)
+router.post('/sign-in', authenticatedByLocal, authController.signIn)
+router.get('/login/google', authController.getGoogleOneTapPage)
+router.post('/auth/google/callback', passport.authenticate('google-one-tap', { session: false }), authController.handleGoogleCallback)
 
 router.post('/', patientController.createPatient)
 router.get('/', patientController.getAllPatients)
