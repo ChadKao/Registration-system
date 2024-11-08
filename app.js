@@ -12,7 +12,8 @@ const cors = require('cors')
 // 允許的前端域名 (包括本地開發和生產環境)
 const allowedOrigins = [
   'http://localhost:3000', // 本地開發時的前端域名
-  'https://medical-appointment-eight.vercel.app' // 生產環境中的前端域名
+  'https://medical-appointment-eight.vercel.app', // 生產環境中的前端域名
+  'https://registration-system-2gho.onrender.com'
 ]
 app.use(passport.initialize())
 // CORS 設定
@@ -33,9 +34,18 @@ app.get('/health', (req, res) => {
 
 // 中介軟件來驗證 API 金鑰
 app.use((req, res, next) => {
+  // Google One Tap 向 data-login_uri (/auth/google/callback) 發送 ID Token 時
+  if (req.path === '/api/patients/auth/google/callback' || req.path === '/api/patients/login/google') {
+    return next()
+  }
+  // // 如果在本地開發環境，直接通過驗證
+  if (process.env.BASE_URL === 'http://localhost:3000') {
+    return next()
+  }
   const apiKey = req.headers['x-api-key']
+
   if (apiKey && apiKey === VALID_API_KEY) {
-    next() // 金鑰有效，繼續處理請求
+    return next() // 金鑰有效，繼續處理請求
   } else {
     return res.status(401).json({
       status: 'error',
