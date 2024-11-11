@@ -13,13 +13,17 @@ const authenticated = async (req, res, next) => {
       }
       return passport.authenticate('jwt', { session: false }, (err, user) => {
         if (err || !user) return res.status(401).json({ status: 'error', message: 'unauthorized' })
-        req.body = {
-          ...req.body, // 以appointments/by-patient路由為例，這邊原本只有放recaptchaResponse
-          idNumber: user.idNumber,
-          birthDate: user.birthDate
+        if (user.role === 'admin') {
+          req.user = user
+          // 若使用 Custom Callback(需要的話需手動設置 req.user，才能在下一個controller使用req.user)
+        } else {
+          req.body = {
+            ...req.body, // 以appointments/by-patient路由為例，這邊原本只有放recaptchaResponse
+            idNumber: user.idNumber,
+            birthDate: user.birthDate
+          }
         }
-        // 若使用 Custom Callback(需要的話需手動設置 req.user，才能在下一個controller使用req.user)
-        next()
+        return next()
       })(req, res, next)
     } else {
       const idNumber = req.body.idNumber
@@ -48,22 +52,24 @@ const authenticated = async (req, res, next) => {
 }
 
 const authenticatedAdmin = (req, res, next) => {
-  if (req.user && req.user.isAdmin) return next()
+  if (req.user && req.user.role === 'admin') return next()
   return res.status(403).json({ status: 'error', message: 'permission denied' })
 }
 
-const authenticatedByLocal = (req, res, next) => {
-  passport.authenticate('local', { session: false }, (err, user, info) => {
-    if (err) {
-      console.err(err)
-      return res.status(500).json({ status: 'error', message: 'Internal server error' })
-    }
-    if (!user) {
-      return res.status(401).json({ status: 'error', message: info.message })
-    }
-    req.user = user
-    next()
-  })(req, res, next)
+const authenticatedByLocal = (role) => {
+  return (req, res, next) => {
+    passport.authenticate(role, { session: false }, (err, user, info) => {
+      if (err) {
+        console.err(err)
+        return res.status(500).json({ status: 'error', message: 'Internal server error' })
+      }
+      if (!user) {
+        return res.status(401).json({ status: 'error', message: info.message })
+      }
+      req.user = user
+      next()
+    })(req, res, next)
+  }
 }
 
 module.exports = {

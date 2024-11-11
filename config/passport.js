@@ -27,6 +27,28 @@ passport.use(new LocalStrategy({
   }
 }))
 
+passport.use('local-admin', new LocalStrategy(
+  {
+    usernameField: 'account',
+    passwordField: 'password'
+  },
+  async (account, password, done) => {
+    try {
+      const admin = await prisma.admin.findUnique({ where: { account } })
+      if (!admin) {
+        return done(null, false, { message: '帳號或密碼錯誤' })
+      }
+      const isPasswordValid = await bcrypt.compare(password, admin.password)
+      if (!isPasswordValid) {
+        return done(null, false, { message: '帳號或密碼錯誤' })
+      }
+      return done(null, admin)
+    } catch (error) {
+      return done(error)
+    }
+  }
+))
+
 passport.use(
   new GoogleOneTapStrategy(
     {
@@ -63,7 +85,14 @@ const jwtOptions = {
 
 passport.use(new JWTStrategy(jwtOptions, async (jwtPayload, done) => {
   try {
-    const user = await prisma.patient.findUnique({ where: { id: jwtPayload.id } })
+    const role = jwtPayload.role
+    let user
+
+    if (role === 'admin') {
+      user = await prisma.admin.findUnique({ where: { id: jwtPayload.id } })
+    } else {
+      user = await prisma.patient.findUnique({ where: { id: jwtPayload.id } })
+    }
     if (user) {
       return done(null, user)
     } else {
@@ -74,7 +103,7 @@ passport.use(new JWTStrategy(jwtOptions, async (jwtPayload, done) => {
   }
 }))
 
-passport.serializeUser((user, done) => {
+/* passport.serializeUser((user, done) => {
   done(null, user.id) // 將 user 的 ID 序列化到 session
 })
 
@@ -86,6 +115,6 @@ passport.deserializeUser(async (id, done) => {
   } catch (error) {
     done(error, null)
   }
-})
+}) */
 
 module.exports = passport

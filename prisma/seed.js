@@ -170,6 +170,16 @@ async function main () {
       }
     ]
   })
+
+  await prisma.admin.create({
+    data: {
+      account: 'admin123',
+      name: 'Admin User',
+      email: 'admin@example.com',
+      password: await bcrypt.hash('test', 10),
+      role: 'admin'
+    }
+  })
 }
 
 const names = [

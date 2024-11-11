@@ -81,3 +81,11 @@ model Appointment {
   patient         Patient          @relation(fields: [patientId], references: [id])
 }
 
+model Admin {
+  id        Int       @id @default(autoincrement())
+  account   String    @unique    
+  name      String       
+  email     String    @unique 
+  password  String 
+  role      String    @default("admin") 
+}
