@@ -4,6 +4,7 @@ const prisma = require('../services/prisma')
 const bcrypt = require('bcryptjs')
 const GoogleOneTapStrategy = require('passport-google-one-tap').GoogleOneTapStrategy
 const passportJWT = require('passport-jwt')
+const GoogleStrategy = require('passport-google-oauth20').Strategy
 
 const JWTStrategy = passportJWT.Strategy
 const ExtractJWT = passportJWT.ExtractJwt
@@ -77,6 +78,32 @@ passport.use(
     }
   )
 )
+
+passport.use(new GoogleStrategy({
+  clientID: process.env.GOOGLE_CLIENT_ID,
+  clientSecret: process.env.GOOGLE_CLIENT_SECRET,
+  callbackURL: '/api/patients/auth/google/callback'
+},
+async (accessToken, refreshToken, profile, done) => {
+  try {
+    const existingUser = await prisma.patient.findUnique({
+      where: { email: profile.emails[0].value }
+    })
+
+    if (existingUser) {
+      return done(null, existingUser) // 這邊會將existingUser附在req.user上 或(err, user)的user
+    } else {
+      const user = {
+        email: profile.emails[0].value,
+        requiresCompletion: true
+      }
+      return done(null, user)
+    }
+  } catch (error) {
+    return done(error)
+  }
+}
+))
 
 const jwtOptions = {
   jwtFromRequest: ExtractJWT.fromAuthHeaderAsBearerToken(),

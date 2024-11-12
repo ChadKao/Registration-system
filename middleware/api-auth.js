@@ -5,18 +5,18 @@ const authenticated = async (req, res, next) => {
   try {
     const authHeader = req.headers.authorization
     if (authHeader && authHeader.startsWith('Bearer ')) {
-      if (req.body.idNumber || req.body.birthDate) {
-        return res.status(400).json({
-          status: 'error',
-          message: '當使用 JWT token 時，請勿提供 idNumber 或 birthDate 資料'
-        })
-      }
       return passport.authenticate('jwt', { session: false }, (err, user) => {
         if (err || !user) return res.status(401).json({ status: 'error', message: 'unauthorized' })
         if (user.role === 'admin') {
           req.user = user
           // 若使用 Custom Callback(需要的話需手動設置 req.user，才能在下一個controller使用req.user)
         } else {
+          if (req.body.idNumber || req.body.birthDate) {
+            return res.status(400).json({
+              status: 'error',
+              message: '當使用 JWT token 時，請勿提供 idNumber 或 birthDate 資料'
+            })
+          }
           req.body = {
             ...req.body, // 以appointments/by-patient路由為例，這邊原本只有放recaptchaResponse
             idNumber: user.idNumber,
