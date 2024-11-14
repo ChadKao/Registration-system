@@ -15,6 +15,8 @@ const allowedOrigins = [
   'https://medical-appointment-eight.vercel.app', // 生產環境中的前端域名
   'https://registration-system-2gho.onrender.com'
 ]
+app.set('trust proxy', true)
+
 app.use(passport.initialize())
 // CORS 設定
 app.use(cors({
@@ -35,7 +37,13 @@ app.get('/health', (req, res) => {
 // 中介軟件來驗證 API 金鑰
 app.use((req, res, next) => {
   // Google One Tap 向 data-login_uri (/auth/google/callback) 發送 ID Token 時
-  if (req.path === '/api/patients/auth/google/callback' || req.path === '/api/patients/login/google') {
+  const validPaths = [
+    '/api/patients/auth/google/callback',
+    '/api/patients/login/google',
+    '/api/patients/login/google-one-tap'
+  ]
+
+  if (validPaths.includes(req.path)) {
     return next()
   }
   // // 如果在本地開發環境，直接通過驗證
