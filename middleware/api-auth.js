@@ -4,7 +4,7 @@ const prisma = require('../services/prisma')
 const authenticated = async (req, res, next) => {
   try {
     const authHeader = req.headers.authorization
-    if (authHeader && authHeader.startsWith('Bearer ')) {
+    if ((authHeader && authHeader.startsWith('Bearer ')) || req.cookies?.jwt) {
       return passport.authenticate('jwt', { session: false }, (err, user) => {
         if (err || !user) return res.status(401).json({ status: 'error', message: 'unauthorized' })
         if (user.role === 'admin') {

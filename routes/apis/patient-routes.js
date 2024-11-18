@@ -8,10 +8,12 @@ const authController = require('../../controllers/auth-controller')
 const { authenticated, authenticatedAdmin } = require('../../middleware/api-auth')
 
 router.post('/sign-in', authenticatedByLocal('local'), authController.signIn)
+
 router.get('/login/google-one-tap', authController.getGoogleOneTapPage)
-router.post('/auth/google/callback', passport.authenticate('google-one-tap', { session: false }), authController.handleGoogleCallback)
-router.get('/login/google', passport.authenticate('google', { scope: ['profile', 'email'], session: false }))
-router.get('/auth/google/callback', passport.authenticate('google', { session: false }), authController.handleGoogleCallback)
+router.post('/auth/google/callback', passport.authenticate('google-one-tap', { session: false }), authController.handleGoogleCallback, authController.signIn)
+
+router.get('/login/google', passport.authenticate('google', { scope: ['email'], session: false }))
+router.get('/auth/google/callback', passport.authenticate('google', { session: false }), authController.handleGoogleCallback, authController.signIn)
 
 router.post('/', authenticated, authenticatedAdmin, patientController.createPatient)
 router.get('/', patientController.getAllPatients)

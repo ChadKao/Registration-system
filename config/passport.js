@@ -105,8 +105,19 @@ async (accessToken, refreshToken, profile, done) => {
 }
 ))
 
+const cookieExtractor = (req) => {
+  let token = null
+  if (req && req.cookies) {
+    token = req.cookies.jwt // 假設 JWT 儲存在名為 'jwt' 的 cookie 中
+  }
+  return token
+}
+
 const jwtOptions = {
-  jwtFromRequest: ExtractJWT.fromAuthHeaderAsBearerToken(),
+  jwtFromRequest: ExtractJWT.fromExtractors([
+    cookieExtractor, // 從 cookies 提取
+    ExtractJWT.fromAuthHeaderAsBearerToken() // 從 Authorization 標頭提取
+  ]),
   secretOrKey: process.env.JWT_SECRET
 }
 

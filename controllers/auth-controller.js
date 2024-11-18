@@ -36,17 +36,7 @@ const handleGoogleCallback = (req, res, next) => {
         data: req.user
       })
     }
-
-    const { password, birthDate, idNumber, ...userData } = req.user // 拿掉敏感資料
-    const token = jwt.sign({ id: userData.id }, process.env.JWT_SECRET, { expiresIn: '30d' }) // 簽發 JWT，效期為 30 天
-
-    return res.json({
-      status: 'success',
-      data: {
-        token,
-        user: userData
-      }
-    })
+    return next()
   } catch (error) {
     next(error)
   }
@@ -54,18 +44,37 @@ const handleGoogleCallback = (req, res, next) => {
 
 const signIn = (req, res, next) => {
   try {
-    const userData = req.user
+    const { password, birthDate, idNumber, medicalId, ...userData } = req.user // 拿掉敏感資料
     const token = jwt.sign({
       id: userData.id,
       role: userData.role
     }, process.env.JWT_SECRET, { expiresIn: '30d' }) // 簽發 JWT，效期為 30 天
-    delete userData.password
+
+    res.cookie('jwt', token, {
+      httpOnly: true,
+      secure: true,
+      sameSite: 'none',
+      maxAge: 60 * 60 * 1000 // 1 小時
+    })
+
     res.json({
       status: 'success',
       data: {
-        token,
+        // token,
         user: userData
       }
+    })
+  } catch (err) {
+    next(err)
+  }
+}
+
+const signOut = (req, res, next) => {
+  try {
+    res.clearCookie('jwt')
+    res.json({
+      status: 'success',
+      message: 'Logout successful'
     })
   } catch (err) {
     next(err)
@@ -75,5 +84,6 @@ const signIn = (req, res, next) => {
 module.exports = {
   getGoogleOneTapPage,
   handleGoogleCallback,
-  signIn
+  signIn,
+  signOut
 }

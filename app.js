@@ -5,6 +5,7 @@ const port = process.env.PORT || 3000
 const prisma = require('./services/prisma')
 const apiErrorHandler = require('./middleware/apiErrorHandler')
 const passport = require('./config/passport')
+const cookieParser = require('cookie-parser')
 
 const VALID_API_KEY = process.env.VALID_API_KEY
 const cors = require('cors')
@@ -16,7 +17,7 @@ const allowedOrigins = [
   'https://registration-system-2gho.onrender.com'
 ]
 app.set('trust proxy', true)
-
+app.use(cookieParser())
 app.use(passport.initialize())
 // CORS 設定
 app.use(cors({
@@ -27,7 +28,8 @@ app.use(cors({
     } else {
       callback(new Error('Not allowed by CORS'))
     }
-  }
+  },
+  credentials: true // 允許攜帶 cookie
 }))
 
 app.get('/health', (req, res) => {
