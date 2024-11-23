@@ -28,7 +28,7 @@ const authenticated = async (req, res, next) => {
     } else {
       const idNumber = req.body.idNumber
       if (!idNumber) {
-        return res.status(400).json({ status: 'error', message: '缺少必要的資料' })
+        return res.status(400).json({ status: 'error', message: '缺少必要的資料或尚未登入' })
       } // idNumber是用來查詢該用戶有無設置密碼
       const user = await prisma.patient.findUnique({
         where: { idNumber },

@@ -71,7 +71,11 @@ const signIn = (req, res, next) => {
 
 const signOut = (req, res, next) => {
   try {
-    res.clearCookie('jwt')
+    res.clearCookie('jwt', {
+      httpOnly: true,
+      secure: true,
+      sameSite: 'none' // 確保 cookie 僅在同源的請求中攜帶
+    })
     res.json({
       status: 'success',
       message: 'Logout successful'
