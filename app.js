@@ -32,6 +32,12 @@ app.use(cors({
   credentials: true // 允許攜帶 cookie
 }))
 
+// app.use((req, res, next) => {
+//   res.set('Cross-Origin-Opener-Policy', 'unsafe-none')
+//   res.set('Cross-Origin-Embedder-Policy', 'require-corp')
+//   next()
+// })
+
 app.get('/health', (req, res) => {
   res.status(200).json({ status: 'healthy' })
 })

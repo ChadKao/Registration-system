@@ -134,16 +134,32 @@ const doctorController = {
         where: { id: parseInt(id) },
         include: {
           specialty: true, // 包含科別資料
-          schedules: true // 包含醫生的排班表
+          schedules: {
+            include: {
+              appointments: {
+                where: {
+                  status: 'CONFIRMED' // 只選擇已確認的預約
+                }
+              }
+            }
+          }
         }
       })
       if (doctor) {
+        const formattedSchedules = doctor.schedules.map(schedule => ({
+          id: schedule.id,
+          date: schedule.date,
+          scheduleSlot: schedule.scheduleSlot,
+          maxAppointments: schedule.maxAppointments,
+          status: schedule.status,
+          bookedAppointments: schedule.appointments.length // 計算已確認的預約數量
+        }))
         const formattedDoctor = {
           id: doctor.id,
           name: doctor.name,
           specialty: doctor.specialty.name,
           description: doctor.description,
-          schedules: doctor.schedules
+          schedules: formattedSchedules
         }
 
         return res.status(200).json({
