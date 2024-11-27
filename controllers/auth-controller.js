@@ -28,10 +28,9 @@ const handleGoogleCallback = (req, res, next) => {
   try {
     if (req.user && req.user.requiresCompletion) {
       res.cookie('pending_user', JSON.stringify(req.user), {
-        httpOnly: false, // 不設 httpOnly，讓前端可以訪問
+        httpOnly: true,
         secure: true,
         sameSite: 'none',
-        domain: process.env.COOKIE_DOMAIN,
         maxAge: 5 * 60 * 1000 // 設置有效期為 5 分鐘
       })
       return res.redirect(`${process.env.FRONTEND_BASE_URL}/register`)
@@ -93,9 +92,33 @@ const signOut = (req, res, next) => {
   }
 }
 
+const getPendingEmail = (req, res, next) => {
+  try {
+    const pendingUser = req.cookies.pending_user
+    if (pendingUser) {
+      res.clearCookie('pending_user', {
+        httpOnly: true,
+        secure: true,
+        sameSite: 'none'
+      })
+      return res.json({
+        status: 'success',
+        data: JSON.parse(pendingUser)
+      })
+    }
+    return res.json({
+      status: 'error',
+      message: 'No pending_user cookie found'
+    })
+  } catch (err) {
+    next(err)
+  }
+}
+
 module.exports = {
   getGoogleOneTapPage,
   handleGoogleCallback,
   signIn,
-  signOut
+  signOut,
+  getPendingEmail
 }

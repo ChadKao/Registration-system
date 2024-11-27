@@ -14,6 +14,7 @@ router.post('/auth/google/callback', passport.authenticate('google-one-tap', { s
 
 router.get('/login/google', passport.authenticate('google', { scope: ['email'], session: false }))
 router.get('/auth/google/callback', passport.authenticate('google', { session: false }), authController.handleGoogleCallback, authController.signIn)
+router.get('/pending-email', authController.getPendingEmail)
 
 router.post('/', authenticated, authenticatedAdmin, patientController.createPatient)
 router.get('/', patientController.getAllPatients)
