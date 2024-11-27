@@ -27,14 +27,22 @@ const getGoogleOneTapPage = (req, res, next) => {
 const handleGoogleCallback = (req, res, next) => {
   try {
     if (req.user && req.user.requiresCompletion) {
-      // 如果用戶需要補充資料，返回 JSON 指示前端進行重定向
-      return res.json({
-        status: 'requires_completion',
-        message: '需填寫其他資料',
-        method: 'post',
-        redirect: '/api/patients', // 前端根據此路徑進行跳轉
-        data: req.user
+      res.cookie('pending_user', JSON.stringify(req.user), {
+        httpOnly: false, // 不設 httpOnly，讓前端可以訪問
+        secure: true,
+        sameSite: 'none',
+        domain: process.env.COOKIE_DOMAIN,
+        maxAge: 5 * 60 * 1000 // 設置有效期為 5 分鐘
       })
+      return res.redirect(`${process.env.FRONTEND_BASE_URL}/register`)
+      // 如果用戶需要補充資料，返回 JSON 指示前端進行重定向
+      // return res.json({
+      //   status: 'requires_completion',
+      //   message: '需填寫其他資料',
+      //   method: 'post',
+      //   redirect: '/api/patients', // 前端根據此路徑進行跳轉
+      //   data: req.user
+      // })
     }
     return next()
   } catch (error) {
@@ -56,14 +64,14 @@ const signIn = (req, res, next) => {
       sameSite: 'none',
       maxAge: 60 * 60 * 1000 // 1 小時
     })
-
-    res.json({
-      status: 'success',
-      data: {
-        // token,
-        user: userData
-      }
-    })
+    return res.redirect(`${process.env.FRONTEND_BASE_URL}/query`)
+    // res.json({
+    //   status: 'success',
+    //   data: {
+    //     // token,
+    //     user: userData
+    //   }
+    // })
   } catch (err) {
     next(err)
   }
