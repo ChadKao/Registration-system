@@ -29,7 +29,18 @@ const doctorScheduleController = {
     const { id } = req.params
     try {
       const schedule = await prisma.doctorSchedule.findUnique({
-        where: { id: parseInt(id) }
+        where: { id: parseInt(id) },
+        include: {
+          appointments: {
+            include: {
+              patient: {
+                select: {
+                  name: true
+                }
+              }
+            }
+          }
+        }
       })
       if (schedule) {
         return res.status(200).json({ status: 'success', data: schedule })

@@ -133,12 +133,20 @@ const doctorController = {
       const doctor = await prisma.doctor.findUnique({
         where: { id: parseInt(id) },
         include: {
-          specialty: true, // 包含科別資料
+          specialty: {
+            select: {
+              name: true
+            }
+          },
           schedules: {
             include: {
-              appointments: {
-                where: {
-                  status: 'CONFIRMED' // 只選擇已確認的預約
+              _count: {
+                select: {
+                  appointments: {
+                    where: {
+                      status: 'CONFIRMED' // 只計算已確認的預約數量
+                    }
+                  }
                 }
               }
             }
@@ -152,7 +160,7 @@ const doctorController = {
           scheduleSlot: schedule.scheduleSlot,
           maxAppointments: schedule.maxAppointments,
           status: schedule.status,
-          bookedAppointments: schedule.appointments.length // 計算已確認的預約數量
+          bookedAppointments: schedule._count.appointments // 計算已確認的預約數量
         }))
         const formattedDoctor = {
           id: doctor.id,
