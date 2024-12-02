@@ -16,7 +16,7 @@ const allowedOrigins = [
   'https://medical-appointment-eight.vercel.app', // 生產環境中的前端域名
   'https://registration-system-2gho.onrender.com'
 ]
-app.set('trust proxy', true)
+app.set('trust proxy', true) // 在 Express 中，如果想要依賴 X-Forwarded-Proto，可以設置 app.set('trust proxy', true);，這樣 Express 會自動根據此標頭設定 req.protocol
 app.use(cookieParser())
 app.use(passport.initialize())
 // CORS 設定

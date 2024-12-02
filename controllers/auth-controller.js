@@ -49,7 +49,7 @@ const handleGoogleCallback = (req, res, next) => {
   }
 }
 
-const signIn = (req, res, next) => {
+const GoogleSignIn = (req, res, next) => {
   try {
     const { password, birthDate, idNumber, medicalId, ...userData } = req.user // 拿掉敏感資料
     const token = jwt.sign({
@@ -63,14 +63,33 @@ const signIn = (req, res, next) => {
       sameSite: 'none',
       maxAge: 60 * 60 * 1000 // 1 小時
     })
-    return res.redirect(`${process.env.FRONTEND_BASE_URL}/query`)
-    // res.json({
-    //   status: 'success',
-    //   data: {
-    //     // token,
-    //     user: userData
-    //   }
-    // })
+    return res.redirect(`${process.env.FRONTEND_BASE_URL}/query?isLoggedIn=true`)
+  } catch (err) {
+    next(err)
+  }
+}
+
+const localSignIn = (req, res, next) => {
+  try {
+    const { password, birthDate, idNumber, medicalId, ...userData } = req.user // 拿掉敏感資料
+    const token = jwt.sign({
+      id: userData.id,
+      role: userData.role
+    }, process.env.JWT_SECRET, { expiresIn: '30d' }) // 簽發 JWT，效期為 30 天
+
+    res.cookie('jwt', token, {
+      httpOnly: true,
+      secure: true,
+      sameSite: 'none',
+      maxAge: 60 * 60 * 1000 // 1 小時
+    })
+    return res.json({
+      status: 'success',
+      data: {
+        // token,
+        user: userData
+      }
+    })
   } catch (err) {
     next(err)
   }
@@ -118,7 +137,8 @@ const getPendingEmail = (req, res, next) => {
 module.exports = {
   getGoogleOneTapPage,
   handleGoogleCallback,
-  signIn,
+  GoogleSignIn,
+  localSignIn,
   signOut,
   getPendingEmail
 }

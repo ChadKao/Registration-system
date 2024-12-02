@@ -12,7 +12,7 @@ router.use('/doctors', doctorsRouter)
 router.use('/patients', patientsRouter)
 router.use('/doctor-schedules', doctorScheduleRoutes)
 router.use('/appointments', appointmentRoutes)
-router.post('/admins/sign-in', authenticatedByLocal('local-admin'), authController.signIn)
+router.post('/admins/sign-in', authenticatedByLocal('local-admin'), authController.localSignIn)
 router.post('/sign-out', authController.signOut)
 
 router.get('/', (req, res) => {
