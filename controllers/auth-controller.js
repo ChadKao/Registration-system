@@ -1,4 +1,5 @@
 const jwt = require('jsonwebtoken')
+const csrf = require('csurf')
 
 const getGoogleOneTapPage = (req, res, next) => {
   try {
@@ -134,11 +135,34 @@ const getPendingEmail = (req, res, next) => {
   }
 }
 
+const csrfToken = (req, res, next) => {
+  try {
+    return res.json({
+      status: 'success',
+      data: {
+        csrfToken: req.csrfToken()
+      }
+    })
+  } catch (err) {
+    next(err)
+  }
+}
+
+const csrfProtection = csrf({
+  cookie: {
+    httpOnly: true,
+    secure: true,
+    sameSite: 'none'
+  }
+})
+
 module.exports = {
   getGoogleOneTapPage,
   handleGoogleCallback,
   GoogleSignIn,
   localSignIn,
   signOut,
-  getPendingEmail
+  getPendingEmail,
+  csrfToken,
+  csrfProtection
 }
