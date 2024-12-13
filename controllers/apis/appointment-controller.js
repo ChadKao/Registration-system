@@ -3,6 +3,7 @@ const secretKey = process.env.RECAPTCHA_SECRET_KEY
 const { validateIdNumber } = require('../../helpers/idValidation')
 const { createPatient } = require('../../services/patient-service')
 const appointmentService = require('../../services/appointment-service')
+const AppError = require('../../errors/AppError')
 
 const appointmentController = {
   createAppointment: async (req, res, next) => {
@@ -103,6 +104,17 @@ const appointmentController = {
           status: 'error',
           message: 'reCAPTCHA 驗證失敗'
         })
+      }
+
+      const patient = await prisma.patient.findUnique({
+        where: {
+          idNumber,
+          birthDate: new Date(birthDate)
+        }
+      })
+
+      if (!patient) {
+        throw new AppError('Patient not found.(若為初診病人，請先填寫初診資料)', 404)
       }
 
       // 查詢病人的所有掛號紀錄，並包含相關的醫生排班資料

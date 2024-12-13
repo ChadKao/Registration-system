@@ -38,7 +38,7 @@ const authenticated = async (req, res, next) => {
       if (!user) {
         return res.status(401).json({ status: 'error', message: 'Patient not found.(若為初診病人，請先填寫初診資料)' })
       }
-      if (user.password) {
+      if (user?.password) {
         // 若用戶已設定密碼但未攜帶 JWT token，要求登入
         return res.status(401).json({ status: 'error', message: '需要先登入' })
       }

@@ -16,7 +16,7 @@ router.get('/login/google', passport.authenticate('google', { scope: ['email'], 
 router.get('/auth/google/callback', passport.authenticate('google', { session: false }), authController.handleGoogleCallback, authController.GoogleSignIn)
 router.get('/pending-email', authController.getPendingEmail)
 
-router.post('/', authenticated, authenticatedAdmin, patientController.createPatient)
+router.post('/', patientController.createPatient)
 router.get('/', patientController.getAllPatients)
 router.get('/:id', patientController.getPatientById)
 router.put('/:id', authenticated, authenticatedAdmin, patientController.updatePatient)

@@ -22,8 +22,11 @@ app.use(passport.initialize())
 // CORS 設定
 app.use(cors({
   origin: function (origin, callback) {
+    if (process.env.NODE_ENV === 'development' && !origin) {
+      return callback(null, true)
+    }
     // 如果請求的 origin 存在於 allowedOrigins 中，則允許，否則拒絕
-    if (allowedOrigins.indexOf(origin) !== -1 || !origin) {
+    if (allowedOrigins.indexOf(origin) !== -1) {
       callback(null, true)
     } else {
       callback(new Error('Not allowed by CORS'))
