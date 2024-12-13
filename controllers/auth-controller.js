@@ -1,4 +1,5 @@
 const jwt = require('jsonwebtoken')
+const csrf = require('csurf')
 
 const getGoogleOneTapPage = (req, res, next) => {
   try {
@@ -102,6 +103,13 @@ const signOut = (req, res, next) => {
       secure: true,
       sameSite: 'none' // 確保 cookie 僅在同源的請求中攜帶
     })
+
+    res.clearCookie('_csrf', {
+      httpOnly: true,
+      secure: true,
+      sameSite: 'none'
+    })
+
     res.json({
       status: 'success',
       message: 'Logout successful'
@@ -134,11 +142,35 @@ const getPendingEmail = (req, res, next) => {
   }
 }
 
+const csrfToken = (req, res, next) => {
+  try {
+    return res.json({
+      status: 'success',
+      data: {
+        csrfToken: req.csrfToken()
+      }
+    })
+  } catch (err) {
+    next(err)
+  }
+}
+
+const csrfProtection = csrf({
+  cookie: {
+    httpOnly: true,
+    secure: true,
+    sameSite: 'none',
+    maxAge: 60 * 60 * 1000 // 1 小時
+  }
+})
+
 module.exports = {
   getGoogleOneTapPage,
   handleGoogleCallback,
   GoogleSignIn,
   localSignIn,
   signOut,
-  getPendingEmail
+  getPendingEmail,
+  csrfToken,
+  csrfProtection
 }
