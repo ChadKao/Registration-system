@@ -142,6 +142,13 @@ const doctorScheduleController = {
         }
       })
 
+      if (schedules.length === 0) {
+        return res.status(404).json({
+          status: 'error',
+          message: `No schedules found for the specialty: ${specialty}`
+        })
+      }
+
       // 整理資料
       const formattedSchedules = schedules.map(schedule => {
         const bookedAppointments = schedule.appointments.filter(appointment => appointment.status === 'CONFIRMED').length
@@ -186,6 +193,13 @@ const doctorScheduleController = {
           appointments: true
         }
       })
+
+      if (schedules.length === 0) {
+        return res.status(404).json({
+          status: 'error',
+          message: `No schedules found for the doctorId: ${doctorId}`
+        })
+      }
 
       // 整理資料格式
       const formattedSchedules = schedules.map(schedule => {
