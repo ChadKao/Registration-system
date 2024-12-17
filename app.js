@@ -25,20 +25,30 @@ app.get('/health', (req, res) => {
 })
 
 // CORS 設定
-app.use(cors({
-  origin: function (origin, callback) {
-    if (process.env.NODE_ENV === 'development' && !origin) {
-      return callback(null, true)
-    }
-    // 如果請求的 origin 存在於 allowedOrigins 中，則允許，否則拒絕
-    if (allowedOrigins.indexOf(origin) !== -1) {
-      callback(null, true)
-    } else {
-      callback(new Error('Not allowed by CORS'))
-    }
-  },
-  credentials: true // 允許攜帶 cookie
-}))
+app.use((req, res, next) => {
+  const userAgent = req.headers['user-agent'] // 獲取 User-Agent 標頭
+  const origin = req.headers.origin
+
+  if (!origin && userAgent && (userAgent.includes('Go-http-client') || userAgent.includes('PostmanRuntime'))) {
+    return next() // 健康檢查請求直接放行
+  }
+  cors({
+    origin: function (origin, callback) {
+      if (process.env.NODE_ENV === 'development' && !origin) {
+        return callback(null, true)
+      }
+
+      // 如果請求的 origin 存在於 allowedOrigins 中，則允許，否則拒絕
+      if (allowedOrigins.indexOf(origin) !== -1) {
+        callback(null, true)
+      } else {
+        callback(new Error('Not allowed by CORS'))
+      }
+    },
+    credentials: true // 允許攜帶 cookie
+  })(req, res, next)
+}
+)
 
 // 中介軟件來驗證 API 金鑰
 app.use((req, res, next) => {
