@@ -3,6 +3,7 @@ const express = require('express')
 const router = express.Router()
 const doctorController = require('../../controllers/apis/doctor-controller')
 const { authenticated, authenticatedAdmin } = require('../../middleware/api-auth')
+const { csrfProtection } = require('../../controllers/auth-controller')
 
 // 醫師 CRUD API 路由
 router.post('/', authenticated, authenticatedAdmin, doctorController.createDoctor)

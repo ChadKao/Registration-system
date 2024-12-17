@@ -19,6 +19,11 @@ const allowedOrigins = [
 app.set('trust proxy', true) // 在 Express 中，如果想要依賴 X-Forwarded-Proto，可以設置 app.set('trust proxy', true);，這樣 Express 會自動根據此標頭設定 req.protocol
 app.use(cookieParser())
 app.use(passport.initialize())
+
+app.get('/health', (req, res) => {
+  res.status(200).json({ status: 'healthy' })
+})
+
 // CORS 設定
 app.use(cors({
   origin: function (origin, callback) {
@@ -34,10 +39,6 @@ app.use(cors({
   },
   credentials: true // 允許攜帶 cookie
 }))
-
-app.get('/health', (req, res) => {
-  res.status(200).json({ status: 'healthy' })
-})
 
 // 中介軟件來驗證 API 金鑰
 app.use((req, res, next) => {

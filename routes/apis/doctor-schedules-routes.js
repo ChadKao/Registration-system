@@ -2,6 +2,7 @@ const express = require('express')
 const router = express.Router()
 const doctorScheduleController = require('../../controllers/apis/doctorSchedule-controller')
 const { authenticated, authenticatedAdmin } = require('../../middleware/api-auth')
+const { csrfProtection } = require('../../controllers/auth-controller')
 
 // DoctorSchedule 路由
 router.post('/', authenticated, authenticatedAdmin, doctorScheduleController.createDoctorSchedule)

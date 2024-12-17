@@ -6,6 +6,7 @@ const passport = require('../../config/passport')
 const { authenticatedByLocal } = require('../../middleware/api-auth')
 const authController = require('../../controllers/auth-controller')
 const { authenticated, authenticatedAdmin } = require('../../middleware/api-auth')
+const { csrfProtection } = require('../../controllers/auth-controller')
 
 router.post('/sign-in', authenticatedByLocal('local'), authController.localSignIn)
 
