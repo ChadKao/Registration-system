@@ -163,7 +163,7 @@ const csrfProtection = (req, res, next) => {
         httpOnly: true,
         secure: true,
         sameSite: 'none',
-        maxAge: 60 * 60 * 1000 // 1 小時
+        maxAge: 60 * 60 // 1 小時
       }
     })(req, res, next)
   }
