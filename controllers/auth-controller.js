@@ -155,14 +155,21 @@ const csrfToken = (req, res, next) => {
   }
 }
 
-const csrfProtection = csrf({
-  cookie: {
-    httpOnly: true,
-    secure: true,
-    sameSite: 'none',
-    maxAge: 60 * 60 * 1000 // 1 小時
+const csrfProtection = (req, res, next) => {
+  // 如果使用者已登入，執行 csrfProtection
+  if (req.cookies?.jwt) {
+    return csrf({
+      cookie: {
+        httpOnly: true,
+        secure: true,
+        sameSite: 'none',
+        maxAge: 60 * 60 * 1000 // 1 小時
+      }
+    })(req, res, next)
   }
-})
+  // 未登入狀態，直接跳過 CSRF 檢查
+  next()
+}
 
 module.exports = {
   getGoogleOneTapPage,

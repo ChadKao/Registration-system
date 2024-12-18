@@ -5,11 +5,11 @@ const { authenticated, authenticatedAdmin } = require('../../middleware/api-auth
 const { csrfProtection } = require('../../controllers/auth-controller')
 
 // DoctorSchedule 路由
-router.post('/', authenticated, authenticatedAdmin, doctorScheduleController.createDoctorSchedule)
+router.post('/', csrfProtection, authenticated, authenticatedAdmin, doctorScheduleController.createDoctorSchedule)
 router.get('/', doctorScheduleController.getAllDoctorSchedules)
 router.get('/:id', doctorScheduleController.getDoctorScheduleById)
-router.put('/:id', authenticated, authenticatedAdmin, doctorScheduleController.updateDoctorSchedule)
-router.delete('/:id', authenticated, authenticatedAdmin, doctorScheduleController.deleteDoctorSchedule)
+router.put('/:id', csrfProtection, authenticated, authenticatedAdmin, doctorScheduleController.updateDoctorSchedule)
+router.delete('/:id', csrfProtection, authenticated, authenticatedAdmin, doctorScheduleController.deleteDoctorSchedule)
 
 router.get('/status/:id', doctorScheduleController.checkScheduleStatus)
 

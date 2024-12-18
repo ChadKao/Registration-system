@@ -20,7 +20,7 @@ router.get('/pending-email', authController.getPendingEmail)
 router.post('/', patientController.createPatient)
 router.get('/', patientController.getAllPatients)
 router.get('/:id', patientController.getPatientById)
-router.put('/:id', authenticated, authenticatedAdmin, patientController.updatePatient)
-router.delete('/:id', authenticated, authenticatedAdmin, patientController.deletePatient)
+router.put('/:id', csrfProtection, authenticated, authenticatedAdmin, patientController.updatePatient)
+router.delete('/:id', csrfProtection, authenticated, authenticatedAdmin, patientController.deletePatient)
 
 module.exports = router
