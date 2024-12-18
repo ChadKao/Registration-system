@@ -32,6 +32,16 @@ app.use((req, res, next) => {
   if (!origin && userAgent && (userAgent.includes('Go-http-client') || userAgent.includes('PostmanRuntime'))) {
     return next() // 健康檢查請求直接放行
   }
+
+  const validPaths = [
+    '/api/patients/auth/google/callback',
+    '/api/patients/login/google',
+    '/api/patients/login/google-one-tap'
+  ]
+
+  if (validPaths.includes(req.path)) {
+    return next()
+  }
   cors({
     origin: function (origin, callback) {
       if (process.env.NODE_ENV === 'development' && !origin) {
