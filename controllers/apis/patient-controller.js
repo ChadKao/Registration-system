@@ -6,6 +6,12 @@ const patientController = {
   // 新增病人
   createPatient: async (req, res, next) => {
     const { medicalId, idNumber, birthDate, name, email, password } = req.body
+    if (!(idNumber && birthDate && name)) {
+      return res.status(400).json({
+        status: 'error',
+        message: '缺少必要的資料'
+      })
+    }
     try {
       // 驗證身分證字號
       if (!validateIdNumber(idNumber)) {

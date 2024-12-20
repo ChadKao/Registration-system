@@ -3,7 +3,7 @@ const { validateIdNumber } = require('../helpers/idValidation')
 
 const createPatient = async (req, res, next) => {
   const { medicalId, idNumber, birthDate, name, email } = req.body
-  if (!(idNumber && birthDate && name && email)) {
+  if (!(idNumber && birthDate && name)) {
     return res.status(400).json({
       status: 'error',
       message: '缺少必要的資料'
