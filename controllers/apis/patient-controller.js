@@ -1,6 +1,7 @@
 const prisma = require('../../services/prisma')
 const bcrypt = require('bcryptjs')
 const { validateIdNumber } = require('../../helpers/idValidation')
+const validator = require('validator')
 
 const patientController = {
   // 新增病人
@@ -18,6 +19,13 @@ const patientController = {
         return res.status(400).json({
           status: 'error',
           message: 'Invalid ID number(身分證字號格式錯誤)'
+        })
+      }
+      // 驗證email格式
+      if (email && !validator.isEmail(email)) {
+        return res.status(400).json({
+          status: 'error',
+          message: 'Invalid email format(Email格式錯誤)'
         })
       }
       const existingPatient = await prisma.patient.findUnique({
@@ -89,6 +97,12 @@ const patientController = {
     const { id } = req.params
     const { medicalId, idNumber, birthDate, name, email } = req.body
     try {
+      if (email && !validator.isEmail(email)) {
+        return res.status(400).json({
+          status: 'error',
+          message: 'Invalid email format(Email格式錯誤)'
+        })
+      }
       const updatedPatient = await prisma.patient.update({
         where: { id: parseInt(id) },
         data: { medicalId, idNumber, birthDate, name, email }

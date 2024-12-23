@@ -1,5 +1,6 @@
 const prisma = require('./prisma')
 const { validateIdNumber } = require('../helpers/idValidation')
+const validator = require('validator')
 
 const createPatient = async (req, res, next) => {
   const { medicalId, idNumber, birthDate, name, email } = req.body
@@ -14,6 +15,12 @@ const createPatient = async (req, res, next) => {
     return res.status(400).json({
       status: 'error',
       message: 'Invalid ID number(身分證字號格式錯誤)'
+    })
+  }
+  if (email && !validator.isEmail(email)) {
+    return res.status(400).json({
+      status: 'error',
+      message: 'Invalid email format(Email格式錯誤)'
     })
   }
   try {
