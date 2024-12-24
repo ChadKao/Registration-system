@@ -18,8 +18,8 @@ router.get('/auth/google/callback', passport.authenticate('google', { session: f
 router.get('/pending-email', authController.getPendingEmail)
 
 router.post('/', patientController.createPatient)
-router.get('/', patientController.getAllPatients)
-router.get('/:id', patientController.getPatientById)
+router.get('/', csrfProtection, authenticated, authenticatedAdmin, patientController.getAllPatients)
+router.get('/:id', csrfProtection, authenticated, patientController.getPatientById)
 router.put('/:id', csrfProtection, authenticated, authenticatedAdmin, patientController.updatePatient)
 router.delete('/:id', csrfProtection, authenticated, authenticatedAdmin, patientController.deletePatient)
 

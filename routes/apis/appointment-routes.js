@@ -5,8 +5,8 @@ const { authenticated, authenticatedAdmin } = require('../../middleware/api-auth
 const { csrfProtection } = require('../../controllers/auth-controller')
 
 // Appointment 路由
-router.get('/', appointmentController.getAllAppointments)
-router.get('/:id', appointmentController.getAppointmentById)
+router.get('/', csrfProtection, authenticated, authenticatedAdmin, appointmentController.getAllAppointments)
+router.get('/:id', csrfProtection, authenticated, appointmentController.getAppointmentById)
 router.put('/:id', csrfProtection, authenticated, authenticatedAdmin, appointmentController.updateAppointment)
 router.delete('/:id', csrfProtection, authenticated, authenticatedAdmin, appointmentController.deleteAppointment)
 
