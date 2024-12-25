@@ -23,7 +23,7 @@ const appointmentController = {
 
   createPatientAndAppointment: async (req, res, next) => {
     try {
-      const newPatient = await createPatient(req, res, next)
+      const newPatient = await createPatient(req.body)
 
       const formattedAppointment = await appointmentService.createAppointment(req.body)
 
