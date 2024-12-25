@@ -10,6 +10,13 @@ const appointmentController = {
     try {
       const formattedAppointment = await appointmentService.createAppointment(req.body)
 
+      res.cookie('skipRecaptcha', true, {
+        httpOnly: true,
+        secure: true,
+        sameSite: 'none',
+        maxAge: 60 * 1000
+      })
+
       return res.status(201).json({
         status: 'success',
         data: {
@@ -26,6 +33,13 @@ const appointmentController = {
       const newPatient = await createPatient(req.body)
 
       const formattedAppointment = await appointmentService.createAppointment(req.body)
+
+      res.cookie('skipRecaptcha', true, {
+        httpOnly: true,
+        secure: true,
+        sameSite: 'none',
+        maxAge: 60 * 1000
+      })
 
       return res.status(201).json({
         status: 'success',
@@ -70,7 +84,7 @@ const appointmentController = {
     const { idNumber, birthDate, recaptchaResponse } = req.body
 
     // 檢查必填資料
-    if (!(idNumber && birthDate && recaptchaResponse)) {
+    if (!(idNumber && birthDate)) {
       return res.status(400).json({
         status: 'error',
         message: '缺少必要的資料'
@@ -85,24 +99,38 @@ const appointmentController = {
     }
 
     try {
-      // 驗證 reCAPTCHA
-      const verificationURL = 'https://www.google.com/recaptcha/api/siteverify'
-      const verificationParams = new URLSearchParams()
-      verificationParams.append('secret', secretKey)
-      verificationParams.append('response', recaptchaResponse)
+      if (!req.cookies.skipRecaptcha) {
+        // 驗證 reCAPTCHA
+        if (!recaptchaResponse) {
+          return res.status(400).json({
+            status: 'error',
+            message: '缺少必要的資料'
+          })
+        }
+        const verificationURL = 'https://www.google.com/recaptcha/api/siteverify'
+        const verificationParams = new URLSearchParams()
+        verificationParams.append('secret', secretKey)
+        verificationParams.append('response', recaptchaResponse)
 
-      const verificationResponse = await fetch(verificationURL, {
-        method: 'POST',
-        body: verificationParams // 使用 x-www-form-urlencoded 格式
-      })
+        const verificationResponse = await fetch(verificationURL, {
+          method: 'POST',
+          body: verificationParams // 使用 x-www-form-urlencoded 格式
+        })
 
-      const verificationData = await verificationResponse.json()
+        const verificationData = await verificationResponse.json()
 
-      // 驗證失敗，返回錯誤訊息
-      if (!verificationData.success) {
-        return res.status(400).json({
-          status: 'error',
-          message: 'reCAPTCHA 驗證失敗'
+        // 驗證失敗，返回錯誤訊息
+        if (!verificationData.success) {
+          return res.status(400).json({
+            status: 'error',
+            message: 'reCAPTCHA 驗證失敗'
+          })
+        }
+      } else {
+        res.clearCookie('skipRecaptcha', {
+          httpOnly: true,
+          secure: true,
+          sameSite: 'none'
         })
       }
 

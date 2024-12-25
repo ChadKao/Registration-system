@@ -101,7 +101,7 @@ const signOut = (req, res, next) => {
     res.clearCookie('jwt', {
       httpOnly: true,
       secure: true,
-      sameSite: 'none' // 確保 cookie 僅在同源的請求中攜帶
+      sameSite: 'none'
     })
 
     res.clearCookie('_csrf', {
