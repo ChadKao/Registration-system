@@ -197,7 +197,29 @@ const appointmentController = {
   // 取消預約
   cancelAppointment: async (req, res, next) => {
     const { id } = req.params
+    const { idNumber, birthDate } = req.body
+    if (!(idNumber && birthDate)) {
+      return res.status(400).json({
+        status: 'error',
+        message: '缺少必要的資料'
+      })
+    }
     try {
+      const appointment = await prisma.appointment.findUnique({
+        where: { id: parseInt(id) },
+        include: {
+          patient: true // 確保取得掛號者的身份資料
+        }
+      })
+
+      if (!appointment) {
+        return res.status(404).json({ status: 'error', message: 'Appointment not found' })
+      }
+
+      if (appointment.patient.idNumber !== idNumber || appointment.patient.birthDate.toISOString() !== new Date(birthDate).toISOString()) {
+        return res.status(403).json({ status: 'error', message: '資料不正確' })
+      }
+
       const updatedAppointment = await prisma.appointment.update({
         where: { id: parseInt(id) },
         data: { status: 'CANCELED' },
