@@ -9,6 +9,7 @@ router.get('/', csrfProtection, authenticated, authenticatedAdmin, appointmentCo
 router.get('/:id', csrfProtection, authenticated, appointmentController.getAppointmentById)
 router.put('/:id', csrfProtection, authenticated, authenticatedAdmin, appointmentController.updateAppointment)
 router.delete('/:id', csrfProtection, authenticated, authenticatedAdmin, appointmentController.deleteAppointment)
+router.get('/by-patient-admin/:id', csrfProtection, authenticated, authenticatedAdmin, appointmentController.getAppointmentsByPatientForAdmin)
 
 router.post('/', csrfProtection, authenticated, appointmentController.createAppointment)
 router.post('/first-visit', appointmentController.createPatientAndAppointment)

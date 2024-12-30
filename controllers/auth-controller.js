@@ -156,6 +156,16 @@ const csrfToken = (req, res, next) => {
 }
 
 const csrfProtection = (req, res, next) => {
+  if (req.path === '/csrf-token') {
+    return csrf({
+      cookie: {
+        httpOnly: true,
+        secure: true,
+        sameSite: 'none',
+        maxAge: 60 * 60 // 1 小時
+      }
+    })(req, res, next)
+  }
   // 如果使用者已登入，執行 csrfProtection
   if (req.cookies?.jwt) {
     return csrf({
@@ -164,7 +174,9 @@ const csrfProtection = (req, res, next) => {
         secure: true,
         sameSite: 'none',
         maxAge: 60 * 60 // 1 小時
-      }
+      },
+      // 不跳過get方法(預設會跳過)
+      ignoreMethods: ['HEAD', 'OPTIONS']
     })(req, res, next)
   }
   // 未登入狀態，直接跳過 CSRF 檢查
