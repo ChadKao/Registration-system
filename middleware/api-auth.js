@@ -20,7 +20,8 @@ const authenticated = async (req, res, next) => {
           req.body = {
             ...req.body, // 以appointments/by-patient路由為例，這邊原本只有放recaptchaResponse
             idNumber: user.idNumber,
-            birthDate: user.birthDate
+            birthDate: user.birthDate,
+            isLoggedIn: true
           }
         }
         return next()

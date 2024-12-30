@@ -99,8 +99,8 @@ const appointmentController = {
     }
 
     try {
-      if (!req.cookies.skipRecaptcha) {
-        // 驗證 reCAPTCHA
+      if (!req.cookies.skipRecaptcha && !req.cookies?.jwt) {
+        // 驗證 reCAPTCHA，已登入者則不需驗證
         if (!recaptchaResponse) {
           return res.status(400).json({
             status: 'error',

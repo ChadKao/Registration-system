@@ -4,9 +4,9 @@ const secretKey = process.env.RECAPTCHA_SECRET_KEY
 const AppError = require('../errors/AppError')
 
 const createAppointment = async (appointmentData) => {
-  const { idNumber, birthDate, doctorScheduleId, recaptchaResponse } = appointmentData
+  const { idNumber, birthDate, doctorScheduleId, recaptchaResponse, isLoggedIn } = appointmentData
   // 檢查必填資料
-  if (!(idNumber && birthDate && recaptchaResponse)) {
+  if (!(idNumber && birthDate)) {
     throw new AppError('缺少必要的資料', 400)
   }
   // 驗證身分證字號
@@ -14,22 +14,28 @@ const createAppointment = async (appointmentData) => {
     throw new AppError('Invalid ID number (身分證字號格式錯誤)', 400)
   }
 
-  // 驗證 reCAPTCHA
-  const verificationURL = 'https://www.google.com/recaptcha/api/siteverify'
-  const verificationParams = new URLSearchParams()
-  verificationParams.append('secret', secretKey)
-  verificationParams.append('response', recaptchaResponse)
+  if (!isLoggedIn) {
+    // 未登入者需要驗證 reCAPTCHA
+    if (!recaptchaResponse) {
+      throw new AppError('缺少recaptchaResponse', 400)
+    }
+    // 驗證 reCAPTCHA
+    const verificationURL = 'https://www.google.com/recaptcha/api/siteverify'
+    const verificationParams = new URLSearchParams()
+    verificationParams.append('secret', secretKey)
+    verificationParams.append('response', recaptchaResponse)
 
-  const verificationResponse = await fetch(verificationURL, {
-    method: 'POST',
-    body: verificationParams // 使用 x-www-form-urlencoded 格式
-  })
+    const verificationResponse = await fetch(verificationURL, {
+      method: 'POST',
+      body: verificationParams // 使用 x-www-form-urlencoded 格式
+    })
 
-  const verificationData = await verificationResponse.json()
+    const verificationData = await verificationResponse.json()
 
-  // 驗證失敗，返回錯誤訊息
-  if (!verificationData.success) {
-    throw new AppError('reCAPTCHA 驗證失敗', 400)
+    // 驗證失敗，返回錯誤訊息
+    if (!verificationData.success) {
+      throw new AppError('reCAPTCHA 驗證失敗', 400)
+    }
   }
 
   // 查詢該病人的 patientId
