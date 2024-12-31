@@ -16,4 +16,6 @@ router.get('/status/:id', doctorScheduleController.checkScheduleStatus)
 router.get('/schedules-by-specialty/:specialty', doctorScheduleController.getSchedulesBySpecialty)
 router.get('/schedules-by-doctor/:doctorId', doctorScheduleController.getSchedulesByDoctorId)
 
+router.post('/cron/check-slots', doctorScheduleController.checkAndGenerateDoctorSlots)
+
 module.exports = router

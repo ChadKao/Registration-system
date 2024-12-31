@@ -14,7 +14,8 @@ const cors = require('cors')
 const allowedOrigins = [
   'http://localhost:3000', // 本地開發時的前端域名
   'https://medical-appointment-eight.vercel.app', // 生產環境中的前端域名
-  'https://registration-system-2gho.onrender.com'
+  'https://registration-system-2gho.onrender.com',
+  'https://console.cron-job.org'
 ]
 app.set('trust proxy', true) // 在 Express 中，如果想要依賴 X-Forwarded-Proto，可以設置 app.set('trust proxy', true);，這樣 Express 會自動根據此標頭設定 req.protocol
 app.use(cookieParser())

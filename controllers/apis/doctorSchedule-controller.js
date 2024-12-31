@@ -1,5 +1,6 @@
 // controllers/apis/doctorSchedule-controller.js
 const prisma = require('../../services/prisma')
+const { checkAndGenerateDoctorSlots } = require('../../helpers/check-and-generate-slots')
 
 const doctorScheduleController = {
   createDoctorSchedule: async (req, res, next) => {
@@ -221,6 +222,20 @@ const doctorScheduleController = {
       return res.status(200).json({
         status: 'success',
         data: formattedSchedules
+      })
+    } catch (error) {
+      next(error)
+    }
+  },
+  checkAndGenerateDoctorSlots: async (req, res, next) => {
+    try {
+      const doctors = await prisma.doctor.findMany()
+      for (const doctor of doctors) {
+        await checkAndGenerateDoctorSlots(doctor.id)
+      }
+      return res.status(200).json({
+        status: 'success',
+        message: 'Cron Job Executed Successfully'
       })
     } catch (error) {
       next(error)
