@@ -29,9 +29,15 @@ app.get('/health', (req, res) => {
 app.use((req, res, next) => {
   const userAgent = req.headers['user-agent'] // 獲取 User-Agent 標頭
   const origin = req.headers.origin
+  const allowedUserAgents = ['PostmanRuntime', 'cron-job.org']
 
-  if (!origin && userAgent && (userAgent.includes('Go-http-client') || userAgent.includes('PostmanRuntime'))) {
-    return next() // 健康檢查請求直接放行
+  // 允許render在啟動伺服器時為了確認狀態所發的請求
+  if (!origin && (req.method === 'HEAD' || req.method === 'GET') && req.path === '/') {
+    return next()
+  }
+
+  if (!origin && userAgent && allowedUserAgents.some(agent => userAgent.includes(agent))) {
+    return next() // 健康檢查請求或來自特定 User-Agent 的請求直接放行
   }
 
   const validPaths = [
