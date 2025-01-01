@@ -53,7 +53,7 @@ async function checkAndGenerateDoctorSlots (doctorId, requiredWeeks = 2) {
         const newSlotDate = new Date(lastScheduleDate)
         newSlotDate.setDate(lastScheduleDate.getDate() + 7) // 增加一週
 
-        await prisma.doctorSchedule.create({
+        const createdSchedule = await prisma.doctorSchedule.create({
           data: {
             doctorId,
             scheduleSlot,
@@ -62,6 +62,17 @@ async function checkAndGenerateDoctorSlots (doctorId, requiredWeeks = 2) {
             status: 'AVAILABLE'
           }
         })
+        // 新增一筆掛號資料作為種子資料
+        if (createdSchedule.doctorId === 1) {
+          await prisma.appointment.create({
+            data: {
+              patientId: 1, // 假設病人 ID 是 1，可以根據需求調整
+              doctorScheduleId: createdSchedule.id, // 使用新建立的 doctorScheduleId
+              consultationNumber: 1,
+              status: 'CONFIRMED'
+            }
+          })
+        }
 
         remainingWeeks++
         lastScheduleDate = newSlotDate
