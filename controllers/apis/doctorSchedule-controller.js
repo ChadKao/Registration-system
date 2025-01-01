@@ -124,6 +124,7 @@ const doctorScheduleController = {
   // 依科別查詢時段
   getSchedulesBySpecialty: async (req, res, next) => {
     const { specialty } = req.params // 從 URL 參數中取得專科
+    const today = new Date()
 
     try {
       // 查詢符合專科的醫生時段
@@ -131,6 +132,9 @@ const doctorScheduleController = {
         where: {
           doctor: {
             specialty: { name: specialty } // 根據醫生的專科篩選時段
+          },
+          date: {
+            gte: today
           }
         },
         include: {
