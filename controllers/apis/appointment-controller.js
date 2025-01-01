@@ -151,7 +151,137 @@ const appointmentController = {
           patient: {
             idNumber,
             birthDate: new Date(birthDate)
-          } // 根據病人資料篩選掛號紀錄
+          }, // 根據病人資料篩選掛號紀錄
+          doctorSchedule: {
+            date: {
+              gte: new Date() // 只取未來的掛號紀錄
+            }
+          }
+        },
+        include: {
+          doctorSchedule: {
+            include: {
+              doctor: {
+                include: {
+                  specialty: true // 確保包含專科資料
+                }
+              }
+            }
+          }
+        }
+      })
+
+      // 如果沒有找到掛號紀錄，返回 404
+      if (appointments.length === 0) {
+        return res.status(404).json({
+          status: 'error',
+          message: 'No appointments found for this patient.'
+        })
+      }
+
+      // 格式化返回資料
+      const formattedAppointments = appointments.map(appointment => ({
+        appointmentId: appointment.id,
+        date: appointment.doctorSchedule.date,
+        doctorScheduleId: appointment.doctorSchedule.id,
+        scheduleSlot: appointment.doctorSchedule.scheduleSlot,
+        doctorName: appointment.doctorSchedule.doctor.name,
+        doctorSpecialty: appointment.doctorSchedule.doctor.specialty.name,
+        consultationNumber: appointment.consultationNumber,
+        status: appointment.status
+      }))
+
+      return res.status(200).json({
+        status: 'success',
+        data: formattedAppointments
+      })
+    } catch (error) {
+      next(error)
+    }
+  },
+
+  getPastAppointmentsByPatient: async (req, res, next) => {
+    const { idNumber, birthDate, recaptchaResponse } = req.body
+
+    // 檢查必填資料
+    if (!(idNumber && birthDate)) {
+      return res.status(400).json({
+        status: 'error',
+        message: '缺少必要的資料'
+      })
+    }
+    // 驗證身分證字號
+    if (!validateIdNumber(idNumber)) {
+      return res.status(400).json({
+        status: 'error',
+        message: 'Invalid ID number(身分證字號格式錯誤)'
+      })
+    }
+
+    try {
+      if (!req.cookies.skipRecaptcha && !req.cookies?.jwt) {
+        // 驗證 reCAPTCHA，已登入者則不需驗證
+        if (!recaptchaResponse) {
+          return res.status(400).json({
+            status: 'error',
+            message: '缺少必要的資料'
+          })
+        }
+        const verificationURL = 'https://www.google.com/recaptcha/api/siteverify'
+        const verificationParams = new URLSearchParams()
+        verificationParams.append('secret', secretKey)
+        verificationParams.append('response', recaptchaResponse)
+
+        const verificationResponse = await fetch(verificationURL, {
+          method: 'POST',
+          body: verificationParams // 使用 x-www-form-urlencoded 格式
+        })
+
+        const verificationData = await verificationResponse.json()
+
+        // 驗證失敗，返回錯誤訊息
+        if (!verificationData.success) {
+          return res.status(400).json({
+            status: 'error',
+            message: 'reCAPTCHA 驗證失敗'
+          })
+        }
+      } else {
+        res.clearCookie('skipRecaptcha', {
+          httpOnly: true,
+          secure: true,
+          sameSite: 'none'
+        })
+      }
+
+      const patient = await prisma.patient.findUnique({
+        where: {
+          idNumber,
+          birthDate: new Date(birthDate)
+        }
+      })
+
+      if (!patient) {
+        throw new AppError('Patient not found.(若為初診病人，請先填寫初診資料)', 404)
+      }
+
+      // 查詢病人的所有掛號紀錄，並包含相關的醫生排班資料
+      const appointments = await prisma.appointment.findMany({
+        where: {
+          patient: {
+            idNumber,
+            birthDate: new Date(birthDate)
+          }, // 根據病人資料篩選掛號紀錄
+          doctorSchedule: {
+            date: {
+              lt: new Date() // 只取過去的掛號紀錄
+            }
+          }
+        },
+        orderBy: {
+          doctorSchedule: {
+            date: 'desc'
+          }
         },
         include: {
           doctorSchedule: {
@@ -209,7 +339,12 @@ const appointmentController = {
       // 查詢病人的所有掛號紀錄，並包含相關的醫生排班資料
       const appointments = await prisma.appointment.findMany({
         where: {
-          patient: { id: parseInt(id) }
+          patient: { id: parseInt(id) },
+          doctorSchedule: {
+            date: {
+              gte: new Date() // 只取未來的掛號紀錄
+            }
+          }
         },
         include: {
           doctorSchedule: {

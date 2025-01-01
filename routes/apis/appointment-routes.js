@@ -14,6 +14,7 @@ router.get('/by-patient-admin/:id', csrfProtection, authenticated, authenticated
 router.post('/', csrfProtection, authenticated, appointmentController.createAppointment)
 router.post('/first-visit', appointmentController.createPatientAndAppointment)
 router.post('/by-patient', csrfProtection, authenticated, appointmentController.getAppointmentsByPatient)
+router.post('/by-patient/past', csrfProtection, authenticated, appointmentController.getPastAppointmentsByPatient)
 router.patch('/:id', csrfProtection, authenticated, appointmentController.cancelAppointment)
 
 module.exports = router

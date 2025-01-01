@@ -187,7 +187,10 @@ const doctorScheduleController = {
       // 查詢醫生的所有排班資料
       const schedules = await prisma.doctorSchedule.findMany({
         where: {
-          doctorId: parseInt(doctorId) // 根據 doctorID 查詢
+          doctorId: parseInt(doctorId), // 根據 doctorID 查詢
+          date: {
+            gte: new Date() // 只查詢未來的排班
+          }
         },
         include: {
           doctor: {
