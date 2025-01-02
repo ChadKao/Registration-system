@@ -1,6 +1,8 @@
 // /controllers/apis/doctor-controller.js
 const prisma = require('../../services/prisma')
 const { Prisma } = require('@prisma/client')
+const today = new Date()
+today.setHours(0, 0, 0, 0)
 
 const doctorController = {
   // 新增醫生
@@ -139,6 +141,11 @@ const doctorController = {
             }
           },
           schedules: {
+            where: {
+              date: {
+                gte: today // 只選擇今天及以後的日程
+              }
+            },
             include: {
               _count: {
                 select: {
@@ -278,7 +285,13 @@ const doctorController = {
         },
         include: {
           specialty: true, // 確保返回專科資料
-          schedules: true
+          schedules: {
+            where: {
+              date: {
+                gte: today // 只選擇今天及以後的日程
+              }
+            }
+          }
         }
       })
       const formattedDoctors = doctors.map(doctor => ({
