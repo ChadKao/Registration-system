@@ -4,6 +4,8 @@ const { validateIdNumber } = require('../../helpers/idValidation')
 const { createPatient } = require('../../services/patient-service')
 const appointmentService = require('../../services/appointment-service')
 const AppError = require('../../errors/AppError')
+const today = new Date()
+today.setHours(0, 0, 0, 0)
 
 const appointmentController = {
   createAppointment: async (req, res, next) => {
@@ -154,7 +156,7 @@ const appointmentController = {
           }, // 根據病人資料篩選掛號紀錄
           doctorSchedule: {
             date: {
-              gte: new Date() // 只取未來的掛號紀錄
+              gte: today // 只取未來的掛號紀錄
             }
           }
         },
@@ -274,7 +276,7 @@ const appointmentController = {
           }, // 根據病人資料篩選掛號紀錄
           doctorSchedule: {
             date: {
-              lt: new Date() // 只取過去的掛號紀錄
+              lt: today // 只取過去的掛號紀錄
             }
           }
         },
@@ -342,7 +344,7 @@ const appointmentController = {
           patient: { id: parseInt(id) },
           doctorSchedule: {
             date: {
-              gte: new Date() // 只取未來的掛號紀錄
+              gte: today // 只取未來的掛號紀錄
             }
           }
         },

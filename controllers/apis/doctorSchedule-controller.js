@@ -1,7 +1,8 @@
 // controllers/apis/doctorSchedule-controller.js
 const prisma = require('../../services/prisma')
 const { checkAndGenerateDoctorSlots } = require('../../helpers/check-and-generate-slots')
-
+const today = new Date()
+today.setHours(0, 0, 0, 0)
 const doctorScheduleController = {
   createDoctorSchedule: async (req, res, next) => {
     const { doctorId, scheduleSlot, date, maxAppointments, status } = req.body
@@ -124,7 +125,6 @@ const doctorScheduleController = {
   // 依科別查詢時段
   getSchedulesBySpecialty: async (req, res, next) => {
     const { specialty } = req.params // 從 URL 參數中取得專科
-    const today = new Date()
 
     try {
       // 查詢符合專科的醫生時段
@@ -189,7 +189,7 @@ const doctorScheduleController = {
         where: {
           doctorId: parseInt(doctorId), // 根據 doctorID 查詢
           date: {
-            gte: new Date() // 只查詢未來的排班
+            gte: today // 只查詢未來的排班
           }
         },
         include: {

@@ -2,6 +2,7 @@ const prisma = require('../services/prisma')
 
 async function checkAndGenerateDoctorSlots (doctorId, requiredWeeks = 2) {
   const today = new Date()
+  today.setHours(0, 0, 0, 0)
 
   const scheduleSlots = await prisma.doctorSchedule.findMany({
     where: {
