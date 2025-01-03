@@ -137,6 +137,9 @@ const doctorScheduleController = {
             gte: today
           }
         },
+        orderBy: {
+          date: 'asc'
+        },
         include: {
           doctor: {
             include: {
@@ -191,6 +194,9 @@ const doctorScheduleController = {
           date: {
             gte: today // 只查詢未來的排班
           }
+        },
+        orderBy: {
+          date: 'asc'
         },
         include: {
           doctor: {

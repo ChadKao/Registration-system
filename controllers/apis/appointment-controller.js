@@ -160,6 +160,11 @@ const appointmentController = {
             }
           }
         },
+        orderBy: {
+          doctorSchedule: {
+            date: 'asc'
+          }
+        },
         include: {
           doctorSchedule: {
             include: {
@@ -346,6 +351,11 @@ const appointmentController = {
             date: {
               gte: today // 只取未來的掛號紀錄
             }
+          }
+        },
+        orderBy: {
+          doctorSchedule: {
+            date: 'asc'
           }
         },
         include: {

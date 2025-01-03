@@ -146,6 +146,9 @@ const doctorController = {
                 gte: today // 只選擇今天及以後的日程
               }
             },
+            orderBy: {
+              date: 'asc'
+            },
             include: {
               _count: {
                 select: {
@@ -290,6 +293,9 @@ const doctorController = {
               date: {
                 gte: today // 只選擇今天及以後的日程
               }
+            },
+            orderBy: {
+              date: 'asc'
             }
           }
         }
