@@ -2,7 +2,10 @@ const prisma = require('../services/prisma')
 
 async function checkAndGenerateDoctorSlots (doctorId, requiredWeeks = 2) {
   const today = new Date()
+  console.log('today', today)
+
   today.setHours(0, 0, 0, 0)
+  console.log('todaysethours', today)
 
   const scheduleSlots = await prisma.doctorSchedule.findMany({
     where: {
@@ -48,6 +51,7 @@ async function checkAndGenerateDoctorSlots (doctorId, requiredWeeks = 2) {
       } else {
         lastScheduleDate = schedules[schedules.length - 1].date
       }
+      console.log('lastScheduleDate', lastScheduleDate)
 
       // 生成新的排班
       while (remainingWeeks < requiredWeeks) {
@@ -80,6 +84,7 @@ async function checkAndGenerateDoctorSlots (doctorId, requiredWeeks = 2) {
       }
     }
   }
+  return { today }
 }
 
 module.exports = {

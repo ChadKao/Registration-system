@@ -244,11 +244,12 @@ const doctorScheduleController = {
     try {
       const doctors = await prisma.doctor.findMany()
       for (const doctor of doctors) {
-        await checkAndGenerateDoctorSlots(doctor.id)
+        const today = await checkAndGenerateDoctorSlots(doctor.id)
       }
       return res.status(200).json({
         status: 'success',
-        message: 'Cron Job Executed Successfully'
+        message: 'Cron Job Executed Successfully',
+        data: today
       })
     } catch (error) {
       next(error)
