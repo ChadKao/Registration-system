@@ -1,8 +1,10 @@
 // controllers/apis/doctorSchedule-controller.js
 const prisma = require('../../services/prisma')
 const { checkAndGenerateDoctorSlots } = require('../../helpers/check-and-generate-slots')
-const today = new Date()
-today.setHours(0, 0, 0, 0)
+const { DateTime } = require('luxon')
+// 將 `today` 轉換為台灣時區
+const today = DateTime.now().setZone('Asia/Taipei').startOf('day').toJSDate()
+
 const doctorScheduleController = {
   createDoctorSchedule: async (req, res, next) => {
     const { doctorId, scheduleSlot, date, maxAppointments, status } = req.body

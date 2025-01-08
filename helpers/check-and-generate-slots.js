@@ -1,8 +1,9 @@
 const prisma = require('../services/prisma')
+const { DateTime } = require('luxon')
 
 async function checkAndGenerateDoctorSlots (doctorId, requiredWeeks = 2) {
-  const today = new Date()
-  today.setHours(0, 0, 0, 0)
+  // 將 `today` 轉換為台灣時區
+  const today = DateTime.now().setZone('Asia/Taipei').startOf('day').toJSDate()
 
   const scheduleSlots = await prisma.doctorSchedule.findMany({
     where: {

@@ -1,11 +1,12 @@
 const prisma = require('../../services/prisma')
+const { DateTime } = require('luxon')
 const secretKey = process.env.RECAPTCHA_SECRET_KEY
 const { validateIdNumber } = require('../../helpers/idValidation')
 const { createPatient } = require('../../services/patient-service')
 const appointmentService = require('../../services/appointment-service')
 const AppError = require('../../errors/AppError')
-const today = new Date()
-today.setHours(0, 0, 0, 0)
+// 將 `today` 轉換為台灣時區
+const today = DateTime.now().setZone('Asia/Taipei').startOf('day').toJSDate()
 
 const appointmentController = {
   createAppointment: async (req, res, next) => {
