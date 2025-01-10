@@ -95,21 +95,30 @@ const patientController = {
   // 更新病人
   updatePatient: async (req, res, next) => {
     const { id } = req.params
-    const { medicalId, idNumber, birthDate, name, email } = req.body
+    const { idNumber, editedBirthDate, editedName, editedEmail } = req.body
     try {
-      if (email && !validator.isEmail(email)) {
+      if (editedEmail && !validator.isEmail(editedEmail)) {
         return res.status(400).json({
           status: 'error',
           message: 'Invalid email format(Email格式錯誤)'
         })
       }
       const updatedPatient = await prisma.patient.update({
-        where: { id: parseInt(id) },
-        data: { medicalId, idNumber, birthDate, name, email }
+        where: {
+          id: parseInt(id),
+          idNumber
+        },
+        data: {
+          birthDate: editedBirthDate,
+          name: editedName,
+          email: editedEmail
+        }
       })
+      const { password, medicalId, ...userData } = updatedPatient // 拿掉敏感資料
+      delete userData.idNumber
       return res.status(200).json({
         status: 'success',
-        data: updatedPatient
+        data: userData
       })
     } catch (error) {
       next(error)
