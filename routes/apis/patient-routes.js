@@ -5,7 +5,7 @@ const patientController = require('../../controllers/apis/patient-controller')
 const passport = require('../../config/passport')
 const { authenticatedByLocal } = require('../../middleware/api-auth')
 const authController = require('../../controllers/auth-controller')
-const { authenticated, authenticatedAdmin } = require('../../middleware/api-auth')
+const { authenticated } = require('../../middleware/api-auth')
 const { csrfProtection } = require('../../controllers/auth-controller')
 
 router.post('/sign-in', authenticatedByLocal('local'), authController.localSignIn)
@@ -18,9 +18,7 @@ router.get('/auth/google/callback', passport.authenticate('google', { session: f
 router.get('/pending-email', authController.getPendingEmail)
 
 router.post('/', patientController.createPatient)
-router.get('/', csrfProtection, authenticated, authenticatedAdmin, patientController.getAllPatients)
 router.get('/:id', csrfProtection, authenticated, patientController.getPatientById)
 router.put('/:id', csrfProtection, authenticated, patientController.updatePatient)
-router.delete('/:id', csrfProtection, authenticated, authenticatedAdmin, patientController.deletePatient)
 
 module.exports = router

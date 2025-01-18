@@ -3,7 +3,7 @@ const prisma = require('../../services/prisma')
 const { Prisma } = require('@prisma/client')
 const { DateTime } = require('luxon')
 // 將 `today` 轉換為台灣時區
-const today = DateTime.now().setZone('Asia/Taipei').startOf('day').toJSDate()
+const today = () => DateTime.now().setZone('Asia/Taipei').startOf('day').toJSDate()
 
 const doctorController = {
   // 新增醫生
@@ -144,7 +144,7 @@ const doctorController = {
           schedules: {
             where: {
               date: {
-                gte: today // 只選擇今天及以後的日程
+                gte: today() // 只選擇今天及以後的日程
               }
             },
             orderBy: {
@@ -292,7 +292,7 @@ const doctorController = {
           schedules: {
             where: {
               date: {
-                gte: today // 只選擇今天及以後的日程
+                gte: today() // 只選擇今天及以後的日程
               }
             },
             orderBy: {

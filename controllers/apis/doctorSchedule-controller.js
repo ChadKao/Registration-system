@@ -3,7 +3,7 @@ const prisma = require('../../services/prisma')
 const { checkAndGenerateDoctorSlots } = require('../../helpers/check-and-generate-slots')
 const { DateTime } = require('luxon')
 // 將 `today` 轉換為台灣時區
-const today = DateTime.now().setZone('Asia/Taipei').startOf('day').toJSDate()
+const today = () => DateTime.now().setZone('Asia/Taipei').startOf('day').toJSDate()
 
 const doctorScheduleController = {
   createDoctorSchedule: async (req, res, next) => {
@@ -136,7 +136,7 @@ const doctorScheduleController = {
             specialty: { name: specialty } // 根據醫生的專科篩選時段
           },
           date: {
-            gte: today
+            gte: today()
           }
         },
         orderBy: {
@@ -194,7 +194,7 @@ const doctorScheduleController = {
         where: {
           doctorId: parseInt(doctorId), // 根據 doctorID 查詢
           date: {
-            gte: today // 只查詢未來的排班
+            gte: today() // 只查詢未來的排班
           }
         },
         orderBy: {
