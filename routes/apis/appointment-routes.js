@@ -5,7 +5,6 @@ const { authenticated } = require('../../middleware/api-auth')
 const { csrfProtection } = require('../../controllers/auth-controller')
 
 // Appointment 路由
-router.get('/:id', csrfProtection, authenticated, appointmentController.getAppointmentById)
 router.post('/', csrfProtection, authenticated, appointmentController.createAppointment)
 router.post('/first-visit', appointmentController.createPatientAndAppointment)
 router.post('/by-patient', csrfProtection, authenticated, appointmentController.getAppointmentsByPatient)

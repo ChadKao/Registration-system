@@ -19,6 +19,7 @@ router.put('/doctor-schedules/:id', csrfProtection, authenticated, authenticated
 router.delete('/doctor-schedules/:id', csrfProtection, authenticated, authenticatedAdmin, doctorScheduleController.deleteDoctorSchedule)
 
 // Appointment routes
+router.get('/appointments/byId/:id', csrfProtection, authenticated, authenticatedAdmin, appointmentController.getAppointmentById)
 router.get('/appointments', csrfProtection, authenticated, authenticatedAdmin, appointmentController.getAllAppointments)
 router.get('/appointments/:patientId', csrfProtection, authenticated, authenticatedAdmin, appointmentController.getAppointmentsByPatientForAdmin)
 router.get('/appointments/past/:patientId', csrfProtection, authenticated, authenticatedAdmin, appointmentController.getPastAppointmentsByPatientForAdmin)
