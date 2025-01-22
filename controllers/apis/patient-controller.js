@@ -69,13 +69,22 @@ const patientController = {
     }
   },
 
-  // 根據ID查詢病人
-  getPatientById: async (req, res, next) => {
-    const { id } = req.params
+  getPatientProfile: async (req, res, next) => {
+    const { idNumber, birthDate } = req.body
+    if (!(idNumber && birthDate)) {
+      return res.status(400).json({
+        status: 'error',
+        message: '缺少必要的資料'
+      })
+    }
     try {
       const patient = await prisma.patient.findUnique({
-        where: { id: parseInt(id) }
+        where: {
+          idNumber,
+          birthDate: new Date(birthDate)
+        }
       })
+      delete patient.password
       if (patient) {
         return res.status(200).json({
           status: 'success',

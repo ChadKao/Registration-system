@@ -34,7 +34,7 @@ const handleGoogleCallback = (req, res, next) => {
         sameSite: 'none',
         maxAge: 5 * 60 * 1000 // 設置有效期為 5 分鐘
       })
-      return res.redirect(`${process.env.FRONTEND_BASE_URL}/register`)
+      return res.redirect(`${process.env.FRONTEND_BASE_URL}/register?pendingUser=true`)
       // 如果用戶需要補充資料，返回 JSON 指示前端進行重定向
       // return res.json({
       //   status: 'requires_completion',
@@ -64,7 +64,7 @@ const GoogleSignIn = (req, res, next) => {
       sameSite: 'none',
       maxAge: 60 * 60 * 1000 // 1 小時
     })
-    return res.redirect(`${process.env.FRONTEND_BASE_URL}/query?isLoggedIn=true`)
+    return res.redirect(`${process.env.FRONTEND_BASE_URL}/departments?isLoggedIn=true`)
   } catch (err) {
     next(err)
   }

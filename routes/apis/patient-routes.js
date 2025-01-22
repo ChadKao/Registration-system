@@ -18,7 +18,7 @@ router.get('/auth/google/callback', passport.authenticate('google', { session: f
 router.get('/pending-email', authController.getPendingEmail)
 
 router.post('/', patientController.createPatient)
-router.get('/:id', csrfProtection, authenticated, patientController.getPatientById)
+router.get('/profile', csrfProtection, authenticated, patientController.getPatientProfile)
 router.put('/:id', csrfProtection, authenticated, patientController.updatePatient)
 
 module.exports = router
