@@ -68,6 +68,8 @@ model DoctorSchedule {
   status            ScheduleStatus // 醫生排班的狀態
   doctor            Doctor   @relation(fields: [doctorId], references: [id], onDelete: Cascade)
   appointments      Appointment[]  // 該時段的掛號
+
+  @@unique([doctorId, scheduleSlot, date])
 }
 
 model Appointment {
